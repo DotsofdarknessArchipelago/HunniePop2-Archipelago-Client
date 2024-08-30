@@ -47,11 +47,9 @@
 
 	<ItemGroup>
 		<!-- found in the \HuniePop 2 - Double Date_Data\Managed folder-->
+		<!-- NOTE REMOVE THESE FILES IN OUTPUT BEFORE RLEASE -->
 		<Reference Include="Assembly-CSharp">
 			<HintPath>Libs\Assembly-CSharp.dll</HintPath>
-		</Reference>
-		<Reference Include="Unity.TextMeshPro">
-			<HintPath>Libs\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UI">
 			<HintPath>Libs\UnityEngine.UI.dll</HintPath>

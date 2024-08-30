@@ -2,7 +2,6 @@
 using BepInEx.Logging;
 using HunniePop2ArchipelagoClient.Archipelago;
 using HunniePop2ArchipelagoClient.Utils;
-using System.IO;
 using UnityEngine;
 
 namespace HunniePop2ArchipelagoClient

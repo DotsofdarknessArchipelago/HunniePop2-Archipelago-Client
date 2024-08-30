@@ -1,15 +1,12 @@
 ﻿using Archipelago.MultiClient.Net;
-using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
-using Archipelago.MultiClient.Net.MessageLog.Messages;
 using Archipelago.MultiClient.Net.Packets;
 using HunniePop2ArchipelagoClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using static System.Collections.Specialized.BitVector32;
 
 namespace HunniePop2ArchipelagoClient.Archipelago
 {
@@ -145,8 +142,8 @@ namespace HunniePop2ArchipelagoClient.Archipelago
             var receivedItem = helper.DequeueItem();
             itemstoprocess.Enqueue(receivedItem.ItemId);
 
-            ArchipelagoConsole.LogMessage("ITEM RECIEVED: " + receivedItem.ItemId.ToString());
-            ArchipelagoConsole.LogMessage("TOTAL ITEMS THAT NEED PROCESSING: " +itemstoprocess.Count);
+            ArchipelagoConsole.LogMessage("ITEM RECIEVED: " + receivedItem.ItemName);
+            ArchipelagoConsole.LogMessage("TOTAL ITEMS TO BE PROCESSED: " +itemstoprocess.Count);
             if (helper.Index < ServerData.Index) return;
 
             ServerData.Index++;

@@ -1,6 +1,4 @@
-﻿using Archipelago.MultiClient.Net;
-using BepInEx;
-using HarmonyLib;
+﻿using HarmonyLib;
 using HunniePop2ArchipelagoClient.Archipelago;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -8,13 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
-using System.Text;
 using System.Threading.Tasks;
-using TMPro;
-using UnityEngine;
-using UnityEngine.Diagnostics;
 
 namespace HunniePop2ArchipelagoClient.Utils
 {
@@ -139,11 +131,11 @@ namespace HunniePop2ArchipelagoClient.Utils
 
                 int i;
                 bool b = true;
-                ArchipelagoConsole.LogMessage(ArchipelagoClient.itemstoprocess.Count.ToString());
+                //ArchipelagoConsole.LogMessage(ArchipelagoClient.itemstoprocess.Count.ToString());
                 while (b){
                     if (ArchipelagoClient.itemstoprocess.Count > 0)
                     {
-                        ArchipelagoConsole.LogMessage("PROCESSING ITEM");
+                        //ArchipelagoConsole.LogMessage("PROCESSING ITEM");
                         playerFile.SetFlagValue(ArchipelagoClient.itemstoprocess.Dequeue().ToString(), 0);
                     }
                     else
