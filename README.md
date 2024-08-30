@@ -14,7 +14,7 @@ BACKUP YOUR SAVE FILE BEFORE USING THIS AS I CANT GUARANTEE THAT IT WILL NOT COR
 INSTALLATION INSTRUCTIONS:
 
 - Have Hunie Pop 2 Installed
-- Download BepInEx ([link](https://github.com/BepInEx/BepInEx/releases))(V5.4.23.2 recommend)(THIS WILL NOT WORK ON BepInEX V6)
+- Download BepInEx ([link](https://github.com/BepInEx/BepInEx/releases))(64bit version 32bit will not work)(V5.4.23.2 recommend)(THIS WILL NOT WORK ON BepInEX V6)
 - Download Hunie Pop 2 Archipelago plugin (See Releases for latest version)
 - Extract and copy the contents of BepInEx to the directory where "HuniePop 2 - Double Date.exe" is
 - Extract and copy the contents of "Hunie Pop 2 Archipelago plugin.zip" to the directory where "HuniePop 2 - Double Date.exe" is
