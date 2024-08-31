@@ -351,6 +351,7 @@ namespace HunniePop2ArchipelagoClient.Utils
         {
             if (__result == false) { return; }
             //ArchipelagoConsole.LogMessage("RECIEVED UNIQUE ITEM : " + __instance.girlDefinition.name + " : QUESTION NAME IS : " + uniqueDef.name + " : QUESTION ID IS : " + uniqueDef.id);
+            ArchipelagoClient.sendloc(Util.idtoflag(uniqueDef.id) - 44);
         }
 
         [HarmonyPatch(typeof(PlayerFileGirl), "ReceiveShoes")]
@@ -359,6 +360,7 @@ namespace HunniePop2ArchipelagoClient.Utils
         {
             if (__result == false) { return; }
             //ArchipelagoConsole.LogMessage("RECIEVED SHOE : " + __instance.girlDefinition.name + " : QUESTION NAME IS : " + shoesDef.name + " : QUESTION ID IS : " + shoesDef.id);
+            ArchipelagoClient.sendloc(Util.idtoflag(shoesDef.id) - 44);
         }
 
         [HarmonyPatch(typeof(PlayerFile), "GetAffectionLevelExp")]
