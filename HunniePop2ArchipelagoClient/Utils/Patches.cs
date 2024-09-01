@@ -17,12 +17,13 @@ namespace HunniePop2ArchipelagoClient.Utils
         public static void patch(ArchipelagoClient a)
         {
             arch = a;
-            //ArchipelagoConsole.LogMessage("DOING PATCHES");
 
             Harmony.CreateAndPatchAll(typeof(Patches));
         }
 
-
+        /// <summary>
+        /// DEBUG PATCH TO MAKE PUZZLES COMPLETE IN 1 MOVE
+        /// </summary>
         [HarmonyPatch(typeof(PuzzleStatus), "AddPuzzleReward")]
         [HarmonyPrefix]
         public static void puzzleautocomplete(PuzzleStatus __instance)
@@ -31,7 +32,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             //__instance.AddResourceValue(PuzzleResourceType.AFFECTION, 100000, false);
         }
 
-
+        /// <summary>
+        /// PATCH TO STOP PLAYERS CONTINUING NON ARCHIPELAGO GAME BASED ON THE WORLD SEED
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(UiCellphoneAppContinue), "OnSaveFileButtonPressed")]
         [HarmonyPrefix]
         public static bool continueoverite(UiAppSaveFile saveFile, UiCellphoneAppContinue __instance, ref UiTitleCanvas ____titleCanvas)
@@ -63,22 +67,21 @@ namespace HunniePop2ArchipelagoClient.Utils
                     Util.cellerror("PLEASE CONNECT TO A ARCHIPELAGO SERVER IN TOP LEFT CORNER", __instance.cellphone);
                 }
 
-                
-
-
             }
             return false;
         }
 
+        /// <summary>
+        /// PATCH TO SETUP A NEW GAME AND LOAD INTO IT
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(UiCellphoneAppNew), "OnStartButtonPressed")]
         [HarmonyPrefix]
         public static bool Newsavefileoverite(UiCellphoneAppNew __instance, ref UiTitleCanvas ____titleCanvas, ref int ____newSaveFileIndex, ref UiAppFileIconSlot ____selectedFileIconSlot)
         {
-
-            //ArchipelagoConsole.LogMessage("testing");
             if (ArchipelagoClient.Authenticated && !Game.Persistence.playerData.files[3].started)
             {
-                int savindex = 3;//____newSaveFileIndex;
+                int savindex = 3;
                 PlayerFile playerFilea = Game.Persistence.playerData.files[savindex];
                 playerFilea = new PlayerFile(new SaveFile());
                 Game.Persistence.Apply(savindex);
@@ -92,7 +95,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                 playerFile.settingDifficulty = (SettingDifficulty)__instance.settingSelectorDifficulty.selectedIndex; 
                 playerFile.SetFlagValue("pollys_junk", __instance.settingSelectorPolly.selectedIndex);
                 playerFile.SetFlagValue("first_location_id", 0);
-                playerFile.SetFlagValue("skip_tutorial", 1); ////
+                playerFile.SetFlagValue("skip_tutorial", 1);
 
                 playerFile.SetFlagValue(ArchipelagoClient.seed(), 1);
 
@@ -112,30 +115,11 @@ namespace HunniePop2ArchipelagoClient.Utils
                     playerFile.GetPlayerFileGirlPair(Game.Data.GirlPairs.Get(p));
                 }
 
-                //playerFile = Util.removebaggage(playerFile);
-
-                //playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(1)).playerMet = true;
-                //playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(6)).playerMet = true;
-                //playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(11)).playerMet = true;
-                //playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(10)).playerMet = true;
-                //playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(12)).playerMet = true;
-
-                //playerFile.GetPlayerFileGirlPair(Game.Data.GirlPairs.Get(1)).relationshipType = GirlPairRelationshipType.COMPATIBLE;
-                //playerFile.GetPlayerFileGirlPair(Game.Data.GirlPairs.Get(4)).relationshipType = GirlPairRelationshipType.COMPATIBLE;
-                //playerFile.GetPlayerFileGirlPair(Game.Data.GirlPairs.Get(26)).relationshipType = GirlPairRelationshipType.LOVERS;
-
-                //playerFile.metGirlPairs.Add(Game.Data.GirlPairs.Get(1));
-                //playerFile.metGirlPairs.Add(Game.Data.GirlPairs.Get(4));
-
-
-
                 int i;
                 bool b = true;
-                //ArchipelagoConsole.LogMessage(ArchipelagoClient.itemstoprocess.Count.ToString());
                 while (b){
                     if (ArchipelagoClient.itemstoprocess.Count > 0)
                     {
-                        //ArchipelagoConsole.LogMessage("PROCESSING ITEM");
                         playerFile.SetFlagValue(ArchipelagoClient.itemstoprocess.Dequeue().ToString(), 0);
                     }
                     else
@@ -145,9 +129,6 @@ namespace HunniePop2ArchipelagoClient.Utils
                 }
 
                 Util.archflagprocess(playerFile);
-
-
-
 
                 playerFile.finderSlots = Util.genfinder(playerFile.girlPairs);
                 playerFile.storeProducts = Util.genStore(playerFile);
@@ -162,7 +143,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                 playerFile.fruitCounts[2] = 25;
                 playerFile.fruitCounts[3] = 25;
 
-                playerFile.locationDefinition = Game.Data.Locations.Get(21); ////
+                playerFile.locationDefinition = Game.Data.Locations.Get(21);
 
                 Game.Persistence.Apply(savindex);
                 Game.Persistence.SaveGame();
@@ -170,18 +151,20 @@ namespace HunniePop2ArchipelagoClient.Utils
             }
             if (Game.Persistence.playerData.files[3].started)
             {
+                ///MAKE PLAYERS ERASE THE GAME SO NO CORRUPTION OCCURS 
                 Util.cellerror("PLEASE ERASE THE BOTTOM RIGHT SAVE FILE TO START A GAME", __instance.cellphone);
             }
             else if (!ArchipelagoClient.Authenticated)
             {
                 Util.cellerror("PLEASE CONNECT TO ARCHIPELAGO SERVER(Top Right) TO START GAME", __instance.cellphone);
             }
-
-
-
             return false;
         }
 
+        /// <summary>
+        /// OVERIDE THE STORE POPULATION AND POPULATE IT WITH WHAT WE WANT
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(PlayerFile), "PopulateStoreProducts")]
         [HarmonyPrefix]
         public static bool shoppopulate(PlayerFile __instance)
@@ -196,6 +179,10 @@ namespace HunniePop2ArchipelagoClient.Utils
         }
 
 
+        /// <summary>
+        /// INJECT NOP(NO OPPERATION) INSTRUCTIONS IN THE 1ST FOR LOOP LOOKIN FOR UNKNOWN PAIRS SO THAT ITS ALWAYS SKIPED,
+        /// CHANGE THE 2ND FOR LOOP THAT LOOK FOR UNKNOWN PAIRS TO LOOK FOR ALL PAIRS THAT ARE NOT UNKOWN
+        /// </summary>
         [HarmonyPatch(typeof(PlayerFile), "PopulateFinderSlots")]
         [HarmonyILManipulator]
         public static void finderslotmodificaions(ILContext ctx, MethodBase orig)
@@ -204,10 +191,8 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 if (ctx.Instrs[i].Offset >= 378 && ctx.Instrs[i].Offset <= 537)
                 {
-                    //ArchipelagoConsole.LogMessage("OLD INSTRUCTION@" + i.ToString() + " :: " + ctx.Instrs[i].Offset.ToString() + " :: " + ctx.Instrs[i].Offset.ToString("X") + " :: " + ctx.Instrs[i].OpCode.ToString());
                     ctx.Instrs[i].OpCode = OpCodes.Nop;
                     ctx.Instrs[i].Operand = null;
-                    //ArchipelagoConsole.LogMessage("NEW INSTRUCTION@" + i.ToString() + " :: " + ctx.Instrs[i].Offset.ToString() + " :: " + ctx.Instrs[i].Offset.ToString("X") + " :: " + ctx.Instrs[i].OpCode.ToString());
                 }
                 if (ctx.Instrs[i].Offset == 563) { ctx.Instrs[i].OpCode = OpCodes.Brfalse; }
 
@@ -215,7 +200,9 @@ namespace HunniePop2ArchipelagoClient.Utils
 
         }
 
-
+        /// <summary>
+        /// PROCESS THE ITEMS IN THE ARCH QUEUE AND SAVE THEM TO FLAGS
+        /// </summary>
         [HarmonyPatch(typeof(LocationManager), "Depart")]
         [HarmonyPostfix]
         public static void processarch()
@@ -242,9 +229,12 @@ namespace HunniePop2ArchipelagoClient.Utils
 
         }
 
+        /// <summary>
+        /// DEBUG PATCH TO ADD CODES THAT DO STUFF
+        /// </summary>
         [HarmonyPatch(typeof(UiCellphoneAppCode), "OnSubmitButtonPressed")]
         [HarmonyPrefix]
-        public static bool codestuff(UiCellphoneAppCode __instance)
+        public static void codestuff(UiCellphoneAppCode __instance)
         {
             string input = __instance.inputField.text.ToUpper().Trim();
             if (input == "TEST")
@@ -265,9 +255,12 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 //ArchipelagoConsole.LogMessage("NEW GAME");
             }
-            return true;
         }
 
+        /// <summary>
+        /// OVERRIDE THE BAGGAGE CHECK TO RETURN TRUE FOR THE TEMP BAGGAGE AS WELL AS THE NORMAL GIRLS BAGGAGE
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(PlayerFileGirl), "HasBaggage")]
         [HarmonyPrefix]
         public static bool hasbaggageoverite(ItemDefinition baggageDef, PlayerFileGirl __instance, ref bool __result)
@@ -276,6 +269,9 @@ namespace HunniePop2ArchipelagoClient.Utils
             return false;
         }
 
+        /// <summary>
+        /// MAKES SURE THAT WHEN A SAVE FILE IS RESET THAT ALL BAGGAGE IS UNLOCKED
+        /// </summary>
         [HarmonyPatch(typeof(SaveFileGirl), "Reset")]
         [HarmonyPostfix]
         public static void savfilegirlresetmod(SaveFileGirl __instance)
@@ -286,6 +282,9 @@ namespace HunniePop2ArchipelagoClient.Utils
             __instance.learnedBaggage.Add(2);
         }
 
+        /// <summary>
+        /// ALLOWS FOR GIFT ITEM TO BE TRASHED NOT BE COMPLETELY LOST BE PUT IN STORE
+        /// </summary>
         [HarmonyPatch(typeof(UiCellphoneTrashZone), "OnDrop")]
         [HarmonyPrefix]
         public static void uniquetrash(Draggable draggable, UiCellphoneTrashZone __instance)
@@ -298,6 +297,9 @@ namespace HunniePop2ArchipelagoClient.Utils
             }
         }
 
+        /// <summary>
+        /// ALLOWS FOR AN ITEM YOU NEED THAT WAS TRASHED TO BE BOUGHT ONLY ONCE
+        /// </summary>
         [HarmonyPatch(typeof(UiCellphoneAppStore), "OnProductPurchased")]
         [HarmonyPrefix]
         public static void giftpurchase(ItemSlotBehavior itemSlotBehavior )
@@ -309,7 +311,11 @@ namespace HunniePop2ArchipelagoClient.Utils
         }
 
 
-        // ARCH CHECKS AREA
+        /// <summary>
+        /// SENDS LOCATION COMPLETE FOR GETTING A RELATIONSHIP TO ATTRACTED/LOVERS
+        /// AND ADDS 1 TO THE RELATIONSHIP UP COUNT SO TO NOT BREAK STUFF
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(PlayerFileGirlPair), "RelationshipLevelUp")]
         [HarmonyPrefix]
         public static bool relationshiplvup(PlayerFileGirlPair __instance)
@@ -318,7 +324,6 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 __instance.relationshipType++;
                 Archipelago.ArchipelagoClient.sendloc(69420000 + __instance.girlPairDefinition.id);
-               // ArchipelagoConsole.LogMessage("RELATIONSHIP LV UP TO ATTRACTED: PAIR ID : " + __instance.girlPairDefinition.id.ToString());
                 Game.Persistence.playerFile.GetPlayerFileGirl(__instance.girlPairDefinition.girlDefinitionOne).relationshipUpCount++;
                 Game.Persistence.playerFile.GetPlayerFileGirl(__instance.girlPairDefinition.girlDefinitionTwo).relationshipUpCount++;
                 Game.Persistence.playerFile.relationshipUpCount++;
@@ -327,7 +332,6 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 __instance.relationshipType++;
                 Archipelago.ArchipelagoClient.sendloc(69420024 + __instance.girlPairDefinition.id);
-                //ArchipelagoConsole.LogMessage("RELATIONSHIP LV UP TO LOVERS: PAIR ID : " + __instance.girlPairDefinition.id.ToString());
                 Game.Persistence.playerFile.GetPlayerFileGirl(__instance.girlPairDefinition.girlDefinitionOne).relationshipUpCount++;
                 Game.Persistence.playerFile.GetPlayerFileGirl(__instance.girlPairDefinition.girlDefinitionTwo).relationshipUpCount++;
                 Game.Persistence.playerFile.relationshipUpCount++;
@@ -335,6 +339,9 @@ namespace HunniePop2ArchipelagoClient.Utils
             return false;
         }
 
+        /// <summary>
+        /// SEND LOCATION COMPLETE FOR GETTING A FAVROUTE QUESTION ANSWER
+        /// </summary>
         [HarmonyPatch(typeof(PlayerFileGirl), "LearnFavAnswer")]
         [HarmonyPostfix]
         public static void questioncheck(QuestionDefinition questionDef, bool __result, PlayerFileGirl __instance)
@@ -342,27 +349,34 @@ namespace HunniePop2ArchipelagoClient.Utils
             if (__result == false) { return; }
 
             Archipelago.ArchipelagoClient.sendloc(69420144 + (__instance.girlDefinition.id-1)*20 + questionDef.id);
-            //ArchipelagoConsole.LogMessage("LEARNED FAV QUESTION FROM : " + __instance.girlDefinition.name + " : QUESTION NAME Name : " + questionDef.name + " : locationID : " + (69420144 + (__instance.girlDefinition.id - 1) * 20 + questionDef.id));
         }
 
+        /// <summary>
+        /// SENDS LOCATION COMPLETE FOR GIFTING A UNIQUE GIFT THAT IS ACCEPTED
+        /// </summary>
         [HarmonyPatch(typeof(PlayerFileGirl), "ReceiveUnique")]
         [HarmonyPostfix]
         public static void uniquecheck(ItemDefinition uniqueDef, bool __result, PlayerFileGirl __instance)
         {
             if (__result == false) { return; }
-            //ArchipelagoConsole.LogMessage("RECIEVED UNIQUE ITEM : " + __instance.girlDefinition.name + " : QUESTION NAME IS : " + uniqueDef.name + " : QUESTION ID IS : " + uniqueDef.id);
             ArchipelagoClient.sendloc(Util.idtoflag(uniqueDef.id) - 44);
         }
 
+        /// <summary>
+        /// SENDS LOCATION COMPLETE FOR GIFTING A SHOE GIFT THAT IS ACCEPTED
+        /// </summary>
         [HarmonyPatch(typeof(PlayerFileGirl), "ReceiveShoes")]
         [HarmonyPostfix]
         public static void shoecheck(ItemDefinition shoesDef, bool __result, PlayerFileGirl __instance)
         {
             if (__result == false) { return; }
-            //ArchipelagoConsole.LogMessage("RECIEVED SHOE : " + __instance.girlDefinition.name + " : QUESTION NAME IS : " + shoesDef.name + " : QUESTION ID IS : " + shoesDef.id);
             ArchipelagoClient.sendloc(Util.idtoflag(shoesDef.id) - 44);
         }
 
+        /// <summary>
+        /// OVERWRITES THE METHOD FOR CALCULATION AFFECTION TOKEN EXP SO THAT WE CAN HAVE ARCHIPELAGO ITEMS FOR IT
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(PlayerFile), "GetAffectionLevelExp")]
         [HarmonyPrefix]
         public static bool affectionexp(PuzzleAffectionType affectionType, bool ofLevel, PlayerFile __instance, ref int __result)
@@ -387,6 +401,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             return false;
         }
 
+        /// <summary>
+        /// OVERWRITES THE METHOD FOR CALCULATION PASSION EXP SO THAT WE CAN HAVE ARCHIPELAGO ITEMS FOR IT
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(PlayerFile), "GetPassionLevelExp")]
         [HarmonyPrefix]
         public static bool passionexp(bool ofLevel, PlayerFile __instance, ref int __result)
@@ -414,6 +432,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             return false;
         }
 
+        /// <summary>
+        /// OVERWRITES THE METHOD FOR CALCULATION STYLE EXP SO THAT WE CAN HAVE ARCHIPELAGO ITEMS FOR IT
+        /// </summary>
+        /// <returns>RETURNS FALSE TO SKIP ORIGINAL METHOD</returns>
         [HarmonyPatch(typeof(PlayerFile), "GetStyleLevelExp")]
         [HarmonyPrefix]
         public static bool styleexp(bool ofLevel, PlayerFile __instance, ref int __result)
@@ -444,9 +466,15 @@ namespace HunniePop2ArchipelagoClient.Utils
 
     }
 
+    /// <summary>
+    /// UTILITY CLASS FOR PATCHES (USUALLY STUFF THAT IS IN MORE THAN 1 PATCH)
+    /// </summary>
     public class Util
     {
 
+        /// <summary>
+        /// METHOD TO SHOW AN ERROR POP UP ON SCREEN
+        /// </summary>
         public static async void cellerror(string s, UiCellphone c)
         {
             c.phoneErrorMsg.ShowMessage(s);
@@ -454,9 +482,11 @@ namespace HunniePop2ArchipelagoClient.Utils
             c.phoneErrorMsg.ClearMessage();
         }
 
+        /// <summary>
+        /// GENERATE THE INITAL FINDER SLOTS WHEN SETTING UP A NEW GAME
+        /// </summary>
         public static List<PlayerFileFinderSlot> genfinder(List<PlayerFileGirlPair> filepair)
         {
-
 
             List<GirlPairDefinition> pair = new List<GirlPairDefinition>();
 
@@ -497,11 +527,12 @@ namespace HunniePop2ArchipelagoClient.Utils
 
             }
 
-
-
             return finder;
         }
 
+        /// <summary>
+        /// METHOD TO GENERATE STORE ITEMS
+        /// </summary>
         public static List<PlayerFileStoreProduct> genStore(PlayerFile file)
         {
 
@@ -632,6 +663,9 @@ namespace HunniePop2ArchipelagoClient.Utils
             return store;
         }
 
+        /// <summary>
+        /// GENERATES A STORE PRODUCT TO SELL IN STORE
+        /// </summary>
         public static PlayerFileStoreProduct genproduct(int i, ItemDefinition item, int c)
         {
             PlayerFileStoreProduct product = new PlayerFileStoreProduct();
@@ -642,6 +676,9 @@ namespace HunniePop2ArchipelagoClient.Utils
 
         }
 
+        /// <summary>
+        /// METHOD TO OVERITE BAGGAE WITH A TEMP ONE
+        /// </summary>
         public static ItemDefinition baggagestuff()
         {
             ItemDefinition newbagage = Game.Data.Items.Get(103);
@@ -654,26 +691,14 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 newbagage.ailmentDefinition.triggers.RemoveAt(i);
             }
-            //newbagage.itemSprite = new Sprite();
 
             return newbagage;
 
         }
 
-        public static PlayerFile removebaggage(PlayerFile orig)
-        {
-            PlayerFile edit = orig;
-            for (int i = 0; i < edit.girls.Count(); i++)
-            {
-                for (int j = 0; j < edit.girls[i].girlDefinition.baggageItemDefs.Count(); j++)
-                {
-                    edit.girls[i].girlDefinition.baggageItemDefs[j].ailmentDefinition = null;
-                }
-            }
-
-            return edit;
-        }
-
+        /// <summary>
+        /// METHOD TO PROCESS THE ARCH ITEMS THAT ARE STORED IN FLAGS ON THE PLAYRE FILE
+        /// </summary>
         public static void archflagprocess(PlayerFile file)
         {
             //ArchipelagoConsole.LogMessage(ArchipelagoClient.itemstoprocess.Dequeue().ToString());
@@ -714,7 +739,6 @@ namespace HunniePop2ArchipelagoClient.Utils
                                 file.girls[j].playerMet = true;
                                 ArchipelagoConsole.LogMessage(def.girlName + " IS UNLOCKED");
                                 file.flags[i].flagValue = 1;
-
 
                             }
                         }
@@ -805,6 +829,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             }
         }
 
+        /// <summary>
+        /// HELPER METHOD TO CONVERT AN ITEM ID TO A FLAG/ARCHIPELAGO ID SINCE THERE ARE 5 UNIQUE/SHOE GIFT ITEMS
+        /// IN THE GAME BUT YOU CAN ONLY GIVE 4 TO A GIRL 
+        /// </summary>
         public static int idtoflag(int id)
         {
             if (id == 129) { return 69420093; }
@@ -916,6 +944,11 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (id == 247) { return 69420188; }
             else { return -1; }
         }
+
+        /// <summary>
+        /// HELPER METHOD TO CONVERT A FLAG/ARCHIPELAGO ID TO AN ITEM ID SINCE THERE ARE 5 UNIQUE/SHOE GIFT ITEMS
+        /// IN THE GAME BUT YOU CAN ONLY GIVE 4 TO A GIRL 
+        /// </summary>
         public static int flagtoid(int flag)
         {
             if (flag == 69420093) { return 129; }
