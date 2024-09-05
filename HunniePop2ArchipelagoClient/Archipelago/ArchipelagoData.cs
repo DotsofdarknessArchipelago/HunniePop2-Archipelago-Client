@@ -18,7 +18,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         /// </summary>
         private string seed;
 
-        private Dictionary<string, object> slotData;
+        public Dictionary<string, object> slotData;
 
         public bool NeedSlotData => slotData == null;
 

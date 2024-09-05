@@ -4,6 +4,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -99,6 +100,32 @@ namespace HunniePop2ArchipelagoClient.Utils
 
                 playerFile.SetFlagValue(ArchipelagoClient.seed(), 1);
 
+                if (ArchipelagoClient.ServerData.slotData["enable_questions"].ToString() == 1.ToString())
+                {
+                    playerFile.SetFlagValue("questions_skiped", 1);
+                }
+                else
+                {
+                    playerFile.SetFlagValue("questions_skiped", 0);
+                }
+
+                if (ArchipelagoClient.ServerData.slotData["disable_baggage"].ToString() == 1.ToString())
+                {
+                    playerFile.SetFlagValue("baggage_disabled", 1);
+                }
+                else
+                {
+                    playerFile.SetFlagValue("baggage_disabled", 0);
+                }
+
+                if (Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_shop_items"]) > 0)
+                {
+                    for (int s=0; s < Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_shop_items"]); s++)
+                    {
+                        playerFile.SetFlagValue("shopslot" + s.ToString(), 0);
+                    }
+                }
+
                 for (int g=1; g<13; g++)
                 {
                     PlayerFileGirl gl =playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(g));
@@ -138,10 +165,10 @@ namespace HunniePop2ArchipelagoClient.Utils
                 playerFile.finderRestockTime = 10;
                 playerFile.storeRestockDay = 2;
 
-                playerFile.fruitCounts[0] = 25;
-                playerFile.fruitCounts[1] = 25;
-                playerFile.fruitCounts[2] = 25;
-                playerFile.fruitCounts[3] = 25;
+                playerFile.fruitCounts[0] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_blue_fruit"]);
+                playerFile.fruitCounts[1] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_green_fruit"]);
+                playerFile.fruitCounts[2] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_orange_fruit"]);
+                playerFile.fruitCounts[3] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_red_fruit"]);
 
                 playerFile.locationDefinition = Game.Data.Locations.Get(21);
 
@@ -239,12 +266,11 @@ namespace HunniePop2ArchipelagoClient.Utils
             string input = __instance.inputField.text.ToUpper().Trim();
             if (input == "TEST")
             {
-                for (int j = 0; j < Game.Data.Items.GetAllOfTypes(ItemType.BAGGAGE).Count; j++)
-                {
 
-                    //ArchipelagoConsole.LogMessage("ID:"+ j.ToString()+" : "+ Game.Data.Items.GetAllOfTypes(ItemType.BAGGAGE)[j].itemName);
+                ArchipelagoConsole.LogMessage(ArchipelagoClient.ServerData.slotData["enable_questions"].ToString());
+                //ArchipelagoConsole.LogMessage("ID:"+ j.ToString()+" : "+ Game.Data.Items.GetAllOfTypes(ItemType.BAGGAGE)[j].itemName);
 
-                }
+                
             }
             if (input == "CONNECT")
             {
@@ -308,6 +334,27 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 Game.Persistence.playerFile.SetFlagValue(Util.idtoflag(itemSlotBehavior.itemDefinition.id).ToString(), 1);
             }
+            if (itemSlotBehavior.itemDefinition.itemType == ItemType.SMOOTHIE)
+            {
+                //ArchipelagoConsole.LogMessage(itemSlotBehavior.itemDefinition.itemName);
+                List<int> l = new List<int>();
+
+                for (int s = 0; true; s++)
+                {
+                    if (Game.Persistence.playerFile.GetFlagValue("shopslot" + s.ToString()) == 0)
+                    {
+                        l.Add(s);
+                    }
+                    else if ((Game.Persistence.playerFile.GetFlagValue("shopslot" + s.ToString()) == -1))
+                    {
+                        break;
+                    }
+                }
+
+                int num = UnityEngine.Random.Range(0, l.Count - 1);
+                ArchipelagoClient.sendloc(69420506 + l[num]);
+                Game.Persistence.playerFile.SetFlagValue("shopslot" + l[num].ToString(), 1);
+            }
         }
 
 
@@ -347,8 +394,10 @@ namespace HunniePop2ArchipelagoClient.Utils
         public static void questioncheck(QuestionDefinition questionDef, bool __result, PlayerFileGirl __instance)
         {
             if (__result == false) { return; }
-
-            Archipelago.ArchipelagoClient.sendloc(69420144 + (__instance.girlDefinition.id-1)*20 + questionDef.id);
+            if (Game.Persistence.playerFile.GetFlagValue("questions_skiped") == 0)
+            {
+                Archipelago.ArchipelagoClient.sendloc(69420144 + (__instance.girlDefinition.id - 1) * 20 + questionDef.id);
+            }
         }
 
         /// <summary>
@@ -540,90 +589,20 @@ namespace HunniePop2ArchipelagoClient.Utils
             List<ItemDefinition> girlgifts = new List<ItemDefinition>();
             List<ItemDefinition> food = Game.Data.Items.GetAllOfTypes(ItemType.FOOD);
             List<ItemDefinition> date = Game.Data.Items.GetAllOfTypes(ItemType.DATE_GIFT);
-            /*
-            for (int i = 0; i < file.girls.Count; i++)
-            {
-                if (file.girls[i].playerMet)
-                {
-                    List<ItemDefinition> tmpunique = file.girls[i].girlDefinition.uniqueItemDefs;
-                    List<ItemDefinition> tmpshoe = file.girls[i].girlDefinition.shoesItemDefs;
 
-                    for (int j = tmpshoe.Count - 1; j >= 0; j--)
-                    {
-                        if (file.girls[i].HasShoes(tmpshoe[j]) || file.IsItemInInventory(tmpshoe[j], true)) { tmpshoe.RemoveAt(j); }
-                    }
-                    for (int k = tmpunique.Count - 1; k >= 0; k--)
-                    {
-                        if (file.girls[i].HasUnique(tmpunique[k]) || file.IsItemInInventory(tmpunique[k], true)) { tmpunique.RemoveAt(k); }
-                    }
+            List<ItemDefinition> architems = new List<ItemDefinition>();
+            for (int s = 0; true; s++)
+            {
+                if (file.GetFlagValue("shopslot" + s.ToString()) == 0)
+                {
+                    architems.Add(genarchitem(s));
+                }
+                else if((file.GetFlagValue("shopslot" + s.ToString()) == -1))
+                {
+                    break;
+                }
+            }
 
-                    girlgifts.AddRange(tmpshoe);
-                    girlgifts.AddRange(tmpunique);
-
-                }
-            }
-            
-            if (girlgifts.Count >= 1)
-            {
-                int num = UnityEngine.Random.Range(0, girlgifts.Count - 1);
-                store.Add(genproduct(0, girlgifts[num], UnityEngine.Random.Range(1, 5)));
-                girlgifts.RemoveAt(num);
-            }
-            else
-            {
-                int num = UnityEngine.Random.Range(0, food.Count - 1);
-                store.Add(genproduct(0, food[num], UnityEngine.Random.Range(1, 5)));
-                food.RemoveAt(num);
-            }
-            if (girlgifts.Count >= 1)
-            {
-                int num = UnityEngine.Random.Range(0, girlgifts.Count - 1);
-                store.Add(genproduct(1, girlgifts[num], UnityEngine.Random.Range(1, 5)));
-                girlgifts.RemoveAt(num);
-            }
-            else
-            {
-                int num = UnityEngine.Random.Range(0, date.Count - 1);
-                store.Add(genproduct(1, date[num], UnityEngine.Random.Range(1, 5)));
-                date.RemoveAt(num);
-            }
-            for (int i = 2; i < 32; i++)
-            {
-                int ran = UnityEngine.Random.Range(0, 100);
-                if (girlgifts.Count >= 1)
-                {
-                    if (ran % 2 == 0)
-                    {
-                        int num = UnityEngine.Random.Range(0, girlgifts.Count - 1);
-                        store.Add(genproduct(i, girlgifts[num], UnityEngine.Random.Range(1, 5)));
-                        girlgifts.RemoveAt(num);
-                    }
-                    else if (ran >= 50)
-                    {
-                        int num = UnityEngine.Random.Range(0, food.Count - 1);
-                        store.Add(genproduct(i, food[num], UnityEngine.Random.Range(1, 5)));
-                        food.RemoveAt(num);
-                    }
-                    else
-                    {
-                        int num = UnityEngine.Random.Range(0, date.Count - 1);
-                        store.Add(genproduct(i, date[num], UnityEngine.Random.Range(1, 5)));
-                        date.RemoveAt(num);
-                    }
-                }
-                else if (ran >= 50)
-                {
-                    int num = UnityEngine.Random.Range(0, date.Count - 1);
-                    store.Add(genproduct(i, date[num], UnityEngine.Random.Range(1, 5)));
-                    date.RemoveAt(num);
-                }
-                else
-                {
-                    int num = UnityEngine.Random.Range(0, food.Count - 1);
-                    store.Add(genproduct(i, food[num], UnityEngine.Random.Range(1, 5)));
-                    food.RemoveAt(num);
-                }
-            }*/
 
             for (int f = 0; f < file.flags.Count; f++)
             {
@@ -637,20 +616,24 @@ namespace HunniePop2ArchipelagoClient.Utils
 
             for (int i = 0; i < 32; i++)
             {
-                if (i % 7 == 0 && girlgifts.Count != 0)
-                {
-                    int num = UnityEngine.Random.Range(0, girlgifts.Count - 1);
-                    store.Add(genproduct(i, girlgifts[num], UnityEngine.Random.Range(1, 5)));
-                    girlgifts.RemoveAt(num);
-                    continue;
-                }
-
                 int ran = UnityEngine.Random.Range(0, 100);
-                if (ran >= 50)
+                if (ran%4==0)
                 {
                     int num = UnityEngine.Random.Range(0, date.Count - 1);
                     store.Add(genproduct(i, date[num], UnityEngine.Random.Range(1, 5)));
                     date.RemoveAt(num);
+                }
+                else if((ran % 4 == 1) && girlgifts.Count > 0)
+                {
+                    int num = UnityEngine.Random.Range(0, girlgifts.Count - 1);
+                    store.Add(genproduct(i, girlgifts[num], UnityEngine.Random.Range(1, 5)));
+                    girlgifts.RemoveAt(num);
+                }
+                else if ((ran % 4 == 2) && architems.Count > 0)
+                {
+                    int num = UnityEngine.Random.Range(0, architems.Count - 1);
+                    store.Add(genproduct(i, architems[num], UnityEngine.Random.Range(10, 20)));
+                    architems.RemoveAt(num);
                 }
                 else
                 {
@@ -661,6 +644,21 @@ namespace HunniePop2ArchipelagoClient.Utils
             }
 
             return store;
+        }
+
+        /// <summary>
+        /// GENERATES AN ARCH STORE PRODUCT TO SELL IN STORE
+        /// </summary>
+        public static ItemDefinition genarchitem(int i)
+        {
+            ItemDefinition item = Game.Data.Items.Get(21);
+            item.itemName = "Arch Shop Product #" + (i+1).ToString();
+            item.itemDescription = "Buy this item to send it to another game";
+            item.itemSprite = Game.Data.Items.Get(314).itemSprite;
+            item.energyDefinition = Game.Data.Items.Get(314).energyDefinition;
+            ArchipelagoConsole.LogMessage(item.itemName);
+            return item;
+
         }
 
         /// <summary>

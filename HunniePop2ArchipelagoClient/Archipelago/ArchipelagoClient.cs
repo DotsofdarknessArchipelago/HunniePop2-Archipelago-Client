@@ -71,7 +71,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                             ItemsHandlingFlags.AllItems, // TODO make sure to change this line
                             new Version(APVersion),
                             password: ServerData.Password,
-                            requestSlotData: false // ServerData.NeedSlotData
+                            requestSlotData: true // ServerData.NeedSlotData
                         )));
             }
             catch (Exception e)
