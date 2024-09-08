@@ -102,11 +102,11 @@ namespace HunniePop2ArchipelagoClient.Utils
 
                 if (ArchipelagoClient.ServerData.slotData["enable_questions"].ToString() == 1.ToString())
                 {
-                    playerFile.SetFlagValue("questions_skiped", 1);
+                    playerFile.SetFlagValue("questions_skiped", 0);
                 }
                 else
                 {
-                    playerFile.SetFlagValue("questions_skiped", 0);
+                    playerFile.SetFlagValue("questions_skiped", 1);
                 }
 
                 if (ArchipelagoClient.ServerData.slotData["disable_baggage"].ToString() == 1.ToString())
@@ -165,10 +165,10 @@ namespace HunniePop2ArchipelagoClient.Utils
                 playerFile.finderRestockTime = 10;
                 playerFile.storeRestockDay = 2;
 
-                playerFile.fruitCounts[0] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_blue_fruit"]);
-                playerFile.fruitCounts[1] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_green_fruit"]);
-                playerFile.fruitCounts[2] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_orange_fruit"]);
-                playerFile.fruitCounts[3] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_red_fruit"]);
+                playerFile.fruitCounts[0] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_blue_seed"]);
+                playerFile.fruitCounts[1] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_green_seed"]);
+                playerFile.fruitCounts[2] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_orange_seed"]);
+                playerFile.fruitCounts[3] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_red_seed"]);
 
                 playerFile.locationDefinition = Game.Data.Locations.Get(21);
 
