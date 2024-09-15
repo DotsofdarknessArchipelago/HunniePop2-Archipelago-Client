@@ -458,7 +458,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 Game.Persistence.playerFile.SetFlagValue(Util.idtoflag(itemSlotBehavior.itemDefinition.id).ToString(), 1);
             }
-            if (itemSlotBehavior.itemDefinition.itemType == ItemType.MISC)
+            if (itemSlotBehavior.itemDefinition.itemType == ItemType.FRUIT)
             {
                 ArchipelagoConsole.LogMessage(itemSlotBehavior.itemDefinition.id.ToString());
                 List<int> l = new List<int>();
@@ -879,9 +879,10 @@ namespace HunniePop2ArchipelagoClient.Utils
         public static ItemDefinition genarchitem(int i)
         {
             ItemDefinition item = Game.Data.Items.Get(314);
-            item.itemName = "Arch Shop Product";
+            item.itemName = "Arch Shop Product #";
             item.id = i+400;
-            item.itemDescription = "Buy this item to send it to another game";
+            item.itemDescription = "Buy this item to send it to another game, Trash after buying";
+            item.itemType = ItemType.FRUIT;
             //item.itemSprite = Game.Data.Items.Get(314).itemSprite;
             //item.energyDefinition = Game.Data.Items.Get(314).energyDefinition;
             //ArchipelagoConsole.LogMessage((i + 1).ToString());
