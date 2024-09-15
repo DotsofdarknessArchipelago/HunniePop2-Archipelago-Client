@@ -11,10 +11,10 @@ namespace HunniePop2ArchipelagoClient
     {
         public const string PluginGUID = "com.dots.hunniepop2";
         public const string PluginName = "HunniePop2Archielago";
-        public const string PluginVersion = "0.3.1";
+        public const string PluginVersion = "0.3.2";
 
         public const string ModDisplayInfo = $"{PluginName} v{PluginVersion}";
-        private const string APDisplayInfo = $"Archipelago v{ArchipelagoClient.APVersion}";
+        private const string APDisplayInfo = $"Archipelago v{PluginVersion}";
         public static ManualLogSource BepinLogger;
         public static ArchipelagoClient ArchipelagoClient;
 

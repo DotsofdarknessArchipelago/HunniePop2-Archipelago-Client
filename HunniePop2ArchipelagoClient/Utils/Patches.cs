@@ -1080,10 +1080,10 @@ namespace HunniePop2ArchipelagoClient.Utils
         /// </summary>
         public static int idtoflag(int id)
         {
-            if (id == 129) { return 69420093; }
-            else if(id == 130) { return 69420094; }
-            else if (id == 131) { return 69420095; }
-            else if (id == 132) { return 69420096; }
+            if (id == 130) { return 69420093; }
+            else if (id == 131) { return 69420094; }
+            else if (id == 132) { return 69420095; }
+            else if (id == 133) { return 69420096; }
             else if (id == 189) { return 69420141; }
             else if (id == 190) { return 69420142; }
             else if (id == 191) { return 69420143; }
@@ -1093,10 +1093,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (id == 135) { return 69420098; }
             else if (id == 136) { return 69420099; }
             else if (id == 137) { return 69420100; }
-            else if (id == 194) { return 69420145; }
-            else if (id == 195) { return 69420146; }
-            else if (id == 196) { return 69420147; }
-            else if (id == 197) { return 69420148; }
+            else if (id == 195) { return 69420145; }
+            else if (id == 196) { return 69420146; }
+            else if (id == 197) { return 69420147; }
+            else if (id == 198) { return 69420148; }
              
             else if (id == 139) { return 69420101; }
             else if (id == 140) { return 69420102; }
@@ -1105,12 +1105,12 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (id == 199) { return 69420149; }
             else if (id == 200) { return 69420150; }
             else if (id == 201) { return 69420151; }
-            else if (id == 202) { return 69420152; }
+            else if (id == 203) { return 69420152; }
              
             else if (id == 144) { return 69420105; }
             else if (id == 145) { return 69420106; }
-            else if (id == 146) { return 69420107; }
-            else if (id == 147) { return 69420108; }
+            else if (id == 147) { return 69420107; }
+            else if (id == 148) { return 69420108; }
             else if (id == 204) { return 69420153; }
             else if (id == 205) { return 69420154; }
             else if (id == 206) { return 69420155; }
@@ -1122,49 +1122,49 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (id == 152) { return 69420112; }
             else if (id == 209) { return 69420157; }
             else if (id == 210) { return 69420158; }
-            else if (id == 211) { return 69420159; }
-            else if (id == 212) { return 69420160; }
+            else if (id == 212) { return 69420159; }
+            else if (id == 213) { return 69420160; }
              
             else if (id == 154) { return 69420113; }
             else if (id == 155) { return 69420114; }
             else if (id == 156) { return 69420115; }
             else if (id == 157) { return 69420116; }
-            else if (id == 214) { return 69420161; }
-            else if (id == 215) { return 69420162; }
-            else if (id == 216) { return 69420163; }
-            else if (id == 217) { return 69420164; }
+            else if (id == 215) { return 69420161; }
+            else if (id == 216) { return 69420162; }
+            else if (id == 217) { return 69420163; }
+            else if (id == 218) { return 69420164; }
              
             else if (id == 159) { return 69420117; }
             else if (id == 160) { return 69420118; }
-            else if (id == 161) { return 69420119; }
-            else if (id == 162) { return 69420120; }
+            else if (id == 162) { return 69420119; }
+            else if (id == 163) { return 69420120; }
             else if (id == 219) { return 69420165; }
-            else if (id == 220) { return 69420166; }
-            else if (id == 221) { return 69420167; }
-            else if (id == 222) { return 69420168; }
+            else if (id == 221) { return 69420166; }
+            else if (id == 222) { return 69420167; }
+            else if (id == 223) { return 69420168; }
              
             else if (id == 164) { return 69420121; }
-            else if (id == 165) { return 69420122; }
-            else if (id == 166) { return 69420123; }
-            else if (id == 167) { return 69420124; }
-            else if (id == 224) { return 69420169; }
-            else if (id == 225) { return 69420170; }
-            else if (id == 226) { return 69420171; }
-            else if (id == 227) { return 69420172; }
+            else if (id == 166) { return 69420122; }
+            else if (id == 167) { return 69420123; }
+            else if (id == 168) { return 69420124; }
+            else if (id == 225) { return 69420169; }
+            else if (id == 226) { return 69420170; }
+            else if (id == 227) { return 69420171; }
+            else if (id == 228) { return 69420172; }
              
             else if (id == 169) { return 69420125; }
             else if (id == 170) { return 69420126; }
             else if (id == 171) { return 69420127; }
-            else if (id == 172) { return 69420128; }
-            else if (id == 229) { return 69420173; }
-            else if (id == 230) { return 69420174; }
-            else if (id == 231) { return 69420175; }
-            else if (id == 232) { return 69420176; }
+            else if (id == 173) { return 69420128; }
+            else if (id == 230) { return 69420173; }
+            else if (id == 231) { return 69420174; }
+            else if (id == 232) { return 69420175; }
+            else if (id == 233) { return 69420176; }
              
             else if (id == 174) { return 69420129; }
             else if (id == 175) { return 69420130; }
-            else if (id == 176) { return 69420131; }
-            else if (id == 177) { return 69420132; }
+            else if (id == 177) { return 69420131; }
+            else if (id == 178) { return 69420132; }
             else if (id == 234) { return 69420177; }
             else if (id == 235) { return 69420178; }
             else if (id == 236) { return 69420179; }
@@ -1177,7 +1177,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (id == 239) { return 69420181; }
             else if (id == 240) { return 69420182; }
             else if (id == 241) { return 69420183; }
-            else if (id == 242) { return 69420184; }
+            else if (id == 243) { return 69420184; }
             
             else if (id == 184) { return 69420137; }
             else if (id == 185) { return 69420138; }
@@ -1196,10 +1196,10 @@ namespace HunniePop2ArchipelagoClient.Utils
         /// </summary>
         public static int flagtoid(int flag)
         {
-            if (flag == 69420093) { return 129; }
-            else if (flag == 69420094) { return 130; }
-            else if (flag == 69420095) { return 131; }
-            else if (flag == 69420096) { return 132; }
+            if (flag == 69420093) { return 130; }
+            else if (flag == 69420094) { return 131; }
+            else if (flag == 69420095) { return 132; }
+            else if (flag == 69420096) { return 133; }
             else if (flag == 69420141) { return 189; }
             else if (flag == 69420142) { return 190; }
             else if (flag == 69420143) { return 191; }
@@ -1209,10 +1209,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (flag == 69420098) { return 135; }
             else if (flag == 69420099) { return 136; }
             else if (flag == 69420100) { return 137; }
-            else if (flag == 69420145) { return 194; }
-            else if (flag == 69420146) { return 195; }
-            else if (flag == 69420147) { return 196; }
-            else if (flag == 69420148) { return 197; }
+            else if (flag == 69420145) { return 195; }
+            else if (flag == 69420146) { return 196; }
+            else if (flag == 69420147) { return 197; }
+            else if (flag == 69420148) { return 198; }
 
             else if (flag == 69420101) { return 139; }
             else if (flag == 69420102) { return 140; }
@@ -1221,12 +1221,12 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (flag == 69420149) { return 199; }
             else if (flag == 69420150) { return 200; }
             else if (flag == 69420151) { return 201; }
-            else if (flag == 69420152) { return 202; }
+            else if (flag == 69420152) { return 203; }
 
             else if (flag == 69420105) { return 144; }
             else if (flag == 69420106) { return 145; }
-            else if (flag == 69420107) { return 146; }
-            else if (flag == 69420108) { return 147; }
+            else if (flag == 69420107) { return 147; }
+            else if (flag == 69420108) { return 148; }
             else if (flag == 69420153) { return 204; }
             else if (flag == 69420154) { return 205; }
             else if (flag == 69420155) { return 206; }
@@ -1238,49 +1238,49 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (flag == 69420112) { return 152; }
             else if (flag == 69420157) { return 209; }
             else if (flag == 69420158) { return 210; }
-            else if (flag == 69420159) { return 211; }
-            else if (flag == 69420160) { return 212; }
+            else if (flag == 69420159) { return 212; }
+            else if (flag == 69420160) { return 213; }
 
             else if (flag == 69420113) { return 154; }
             else if (flag == 69420114) { return 155; }
             else if (flag == 69420115) { return 156; }
             else if (flag == 69420116) { return 157; }
-            else if (flag == 69420161) { return 214; }
-            else if (flag == 69420162) { return 215; }
-            else if (flag == 69420163) { return 216; }
-            else if (flag == 69420164) { return 217; }
+            else if (flag == 69420161) { return 215; }
+            else if (flag == 69420162) { return 216; }
+            else if (flag == 69420163) { return 217; }
+            else if (flag == 69420164) { return 218; }
 
             else if (flag == 69420117) { return 159; }
             else if (flag == 69420118) { return 160; }
-            else if (flag == 69420119) { return 161; }
-            else if (flag == 69420120) { return 162; }
+            else if (flag == 69420119) { return 162; }
+            else if (flag == 69420120) { return 163; }
             else if (flag == 69420165) { return 219; }
-            else if (flag == 69420166) { return 220; }
-            else if (flag == 69420167) { return 221; }
-            else if (flag == 69420168) { return 222; }
+            else if (flag == 69420166) { return 221; }
+            else if (flag == 69420167) { return 222; }
+            else if (flag == 69420168) { return 223; }
 
             else if (flag == 69420121) { return 164; }
-            else if (flag == 69420122) { return 165; }
-            else if (flag == 69420123) { return 166; }
-            else if (flag == 69420124) { return 167; }
-            else if (flag == 69420169) { return 224; }
-            else if (flag == 69420170) { return 225; }
-            else if (flag == 69420171) { return 226; }
-            else if (flag == 69420172) { return 227; }
+            else if (flag == 69420122) { return 166; }
+            else if (flag == 69420123) { return 167; }
+            else if (flag == 69420124) { return 168; }
+            else if (flag == 69420169) { return 225; }
+            else if (flag == 69420170) { return 226; }
+            else if (flag == 69420171) { return 227; }
+            else if (flag == 69420172) { return 228; }
 
             else if (flag == 69420125) { return 169; }
             else if (flag == 69420126) { return 170; }
             else if (flag == 69420127) { return 171; }
-            else if (flag == 69420128) { return 172; }
-            else if (flag == 69420173) { return 229; }
-            else if (flag == 69420174) { return 230; }
-            else if (flag == 69420175) { return 231; }
-            else if (flag == 69420176) { return 232; }
+            else if (flag == 69420128) { return 173; }
+            else if (flag == 69420173) { return 230; }
+            else if (flag == 69420174) { return 231; }
+            else if (flag == 69420175) { return 232; }
+            else if (flag == 69420176) { return 233; }
 
             else if (flag == 69420129) { return 174; }
             else if (flag == 69420130) { return 175; }
-            else if (flag == 69420131) { return 176; }
-            else if (flag == 69420132) { return 177; }
+            else if (flag == 69420131) { return 177; }
+            else if (flag == 69420132) { return 178; }
             else if (flag == 69420177) { return 234; }
             else if (flag == 69420178) { return 235; }
             else if (flag == 69420179) { return 236; }
@@ -1293,7 +1293,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (flag == 69420181) { return 239; }
             else if (flag == 69420182) { return 240; }
             else if (flag == 69420183) { return 241; }
-            else if (flag == 69420184) { return 242; }
+            else if (flag == 69420184) { return 243; }
 
             else if (flag == 69420137) { return 184; }
             else if (flag == 69420138) { return 185; }
