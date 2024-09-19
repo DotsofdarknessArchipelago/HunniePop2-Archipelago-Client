@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using static UnityEngine.UIElements.StyleVariableResolver;
+
 
 namespace HunniePop2ArchipelagoClient.Utils
 {
@@ -20,8 +20,8 @@ namespace HunniePop2ArchipelagoClient.Utils
         public static void patch(ArchipelagoClient a)
         {
             arch = a;
-
             Harmony.CreateAndPatchAll(typeof(Patches));
+
         }
 
         /// <summary>
@@ -33,6 +33,13 @@ namespace HunniePop2ArchipelagoClient.Utils
         {
             //if (__instance.bonusRound) { return; }
             //__instance.AddResourceValue(PuzzleResourceType.AFFECTION, 100000, false);
+        }
+
+        [HarmonyPatch(typeof(UiTitleCanvas), "OnInitialAnimationComplete")]
+        [HarmonyPostfix]
+        public static void background()
+        {
+            Application.runInBackground = true;
         }
 
         /// <summary>
@@ -249,7 +256,15 @@ namespace HunniePop2ArchipelagoClient.Utils
                 while (b){
                     if (ArchipelagoClient.itemstoprocess.Count > 0)
                     {
-                        playerFile.SetFlagValue(ArchipelagoClient.itemstoprocess.Dequeue().ToString(), 0);
+                        String flag = ArchipelagoClient.itemstoprocess.Dequeue().ToString();
+                        if (playerFile.GetFlagValue(flag) == -1)
+                        {
+                            playerFile.SetFlagValue(flag, 0);
+                        }
+                        else
+                        {
+                            ArchipelagoConsole.LogMessage("Item Id #" + flag + " already in game");
+                        }
                     }
                     else
                     {
@@ -258,6 +273,15 @@ namespace HunniePop2ArchipelagoClient.Utils
                 }
 
                 Util.archflagprocess(playerFile);
+
+                for (int p = 1; p < playerFile.girls.Count; p++)
+                {
+                    if (playerFile.girls[p].playerMet)
+                    {
+                        playerFile.SetFlagValue("wardrobe_girl_id", playerFile.girls[p].girlDefinition.id);
+                        break;
+                    }
+                }
 
                 playerFile.finderSlots = Util.genfinder(playerFile.girlPairs);
                 playerFile.storeProducts = Util.genStore(playerFile);
@@ -325,26 +349,6 @@ namespace HunniePop2ArchipelagoClient.Utils
         }
 
 
-        /// <summary>
-        /// INJECT NOP(NO OPPERATION) INSTRUCTIONS IN THE 1ST FOR LOOP LOOKIN FOR UNKNOWN PAIRS SO THAT ITS ALWAYS SKIPED,
-        /// CHANGE THE 2ND FOR LOOP THAT LOOK FOR UNKNOWN PAIRS TO LOOK FOR ALL PAIRS THAT ARE NOT UNKOWN
-        /// </summary>
-        [HarmonyPatch(typeof(PlayerFile), "PopulateFinderSlots")]
-        [HarmonyILManipulator]
-        public static void finderslotmodificaions(ILContext ctx, MethodBase orig)
-        {
-            for (int i = 0; i < ctx.Instrs.Count; i++)
-            {
-                if (ctx.Instrs[i].Offset >= 378 && ctx.Instrs[i].Offset <= 537)
-                {
-                    ctx.Instrs[i].OpCode = OpCodes.Nop;
-                    ctx.Instrs[i].Operand = null;
-                }
-                if (ctx.Instrs[i].Offset == 563) { ctx.Instrs[i].OpCode = OpCodes.Brfalse; }
-
-            }
-
-        }
 
         /// <summary>
         /// PROCESS THE ITEMS IN THE ARCH QUEUE AND SAVE THEM TO FLAGS
@@ -353,7 +357,8 @@ namespace HunniePop2ArchipelagoClient.Utils
         [HarmonyPostfix]
         public static void processarch()
         {
-            if (Game.Persistence.playerFile.storyProgress >= 12)
+            PlayerFile file = Game.Persistence.playerFile;
+            if (file.storyProgress >= 12)
             {
                 ArchipelagoClient.complete();
             }
@@ -364,8 +369,10 @@ namespace HunniePop2ArchipelagoClient.Utils
                 if (ArchipelagoClient.itemstoprocess.Count > 0)
                 {
                     String flag = ArchipelagoClient.itemstoprocess.Dequeue().ToString();
-                    if (Game.Persistence.playerFile.GetFlagValue(flag)==-1)
-                        Game.Persistence.playerFile.SetFlagValue(flag.ToString(), 0);
+                    if (file.GetFlagValue(flag) == -1)
+                    {
+                        file.SetFlagValue(flag.ToString(), 0);
+                    }
                 }
                 else
                 {
@@ -373,7 +380,18 @@ namespace HunniePop2ArchipelagoClient.Utils
                 }
             }
 
-            Util.archflagprocess(Game.Persistence.playerFile);
+            for (int i = 0; i < file.girls.Count; i++)
+            {
+                if (file.girls[i].learnedBaggage.Count > 3)
+                {
+                    for (int j = file.girls[i].learnedBaggage.Count -1; j > 3; j--)
+                    {
+                        file.girls[i].learnedBaggage.RemoveAt(j);
+                    }
+                }
+            }
+
+            Util.archflagprocess(file);
 
         }
 
@@ -529,22 +547,52 @@ namespace HunniePop2ArchipelagoClient.Utils
         /// SENDS LOCATION COMPLETE FOR GIFTING A UNIQUE GIFT THAT IS ACCEPTED
         /// </summary>
         [HarmonyPatch(typeof(PlayerFileGirl), "ReceiveUnique")]
-        [HarmonyPostfix]
-        public static void uniquecheck(ItemDefinition uniqueDef, bool __result, PlayerFileGirl __instance)
+        [HarmonyPrefix]
+        public static bool uniquecheck(ItemDefinition uniqueDef,ref bool __result, PlayerFileGirl __instance, ref List<int> ____receivedUniques)
         {
-            if (__result == false) { return; }
+            if (!__instance.girlDefinition.uniqueItemDefs.Contains(uniqueDef))
+            {
+                __result = false;
+                return false;
+            }
+
+            if (____receivedUniques.Contains(__instance.girlDefinition.uniqueItemDefs.IndexOf(uniqueDef)))
+            {
+                __result = true;
+                return false;
+            }
+
+            ____receivedUniques.Add(__instance.girlDefinition.uniqueItemDefs.IndexOf(uniqueDef));
             ArchipelagoClient.sendloc(Util.idtoflag(uniqueDef.id) - 44);
+            
+            __result = true;
+            return false;
         }
 
         /// <summary>
         /// SENDS LOCATION COMPLETE FOR GIFTING A SHOE GIFT THAT IS ACCEPTED
         /// </summary>
         [HarmonyPatch(typeof(PlayerFileGirl), "ReceiveShoes")]
-        [HarmonyPostfix]
-        public static void shoecheck(ItemDefinition shoesDef, bool __result, PlayerFileGirl __instance)
+        [HarmonyPrefix]
+        public static bool shoecheck(ItemDefinition shoesDef,ref bool __result, PlayerFileGirl __instance, ref List<int> ____receivedShoes)
         {
-            if (__result == false) { return; }
+            if (!__instance.girlDefinition.shoesItemDefs.Contains(shoesDef))
+            {
+                __result = false;
+                return false;
+            }
+
+            if (____receivedShoes.Contains(__instance.girlDefinition.shoesItemDefs.IndexOf(shoesDef)))
+            {
+                __result = true;
+                return false;
+            }
+
+            ____receivedShoes.Add(__instance.girlDefinition.shoesItemDefs.IndexOf(shoesDef));
             ArchipelagoClient.sendloc(Util.idtoflag(shoesDef.id) - 44);
+
+            __result = true;
+            return false;
         }
 
         /// <summary>
@@ -738,6 +786,120 @@ namespace HunniePop2ArchipelagoClient.Utils
         {
             __result = false;
             return false;
+        }
+
+        [HarmonyPatch(typeof(UiAppSelectListItem), "Populate")]
+        [HarmonyPostfix]
+        public static void thing(ref bool ____hidden)
+        {
+            ____hidden = false;
+        }
+
+        [HarmonyPatch(typeof(UiAppStyleSelectList), "Refresh")]
+        [HarmonyPostfix]
+        public static void outfitbuylist(UiAppStyleSelectList __instance, ref PlayerFileGirl ____playerFileGirl, ref UiAppSelectListItem ____purchaseListItem)
+        {
+            PlayerFile file = Game.Persistence.playerFile;
+            int cost = 0;
+            FruitCategoryInfo fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo((!__instance.alternative) ? ____playerFileGirl.girlDefinition.leastFavoriteAffectionType : ____playerFileGirl.girlDefinition.favoriteAffectionType);
+            if (file.GetFlagValue("loc_" + (69420392 + ((____playerFileGirl.girlDefinition.id - 1)*10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[7]; cost = 10; }
+            else if (file.GetFlagValue("loc_" + (69420393 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[8]; cost = 20; }
+            else if (file.GetFlagValue("loc_" + (69420394 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[9]; cost = 30; }
+
+            ____purchaseListItem.ShowCost(fruitCategoryInfo, cost);
+
+            if (file.GetFruitCount(fruitCategoryInfo.affectionType) >= cost)
+            {
+                __instance.buyButton.Enable();
+            }
+            else
+            {
+                __instance.buyButton.Disable();
+            }
+        }
+
+        [HarmonyPatch(typeof(UiAppStyleSelectList), "OnBuyButtonPressed")]
+        [HarmonyPrefix]
+        public static bool waudrobebuy(ButtonBehavior buttonBehavior, UiAppStyleSelectList __instance, ref PlayerFileGirl ____playerFileGirl, ref UiAppSelectListItem ____purchaseListItem)
+        {
+            if (____purchaseListItem==null) { return false; }
+
+            PlayerFile file = Game.Persistence.playerFile;
+            FruitCategoryInfo fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo((!__instance.alternative) ? ____playerFileGirl.girlDefinition.leastFavoriteAffectionType : ____playerFileGirl.girlDefinition.favoriteAffectionType);
+            int cost = 0;
+            int baseflag = 0;
+            if (____purchaseListItem == __instance.listItems[7]) { cost = 10; baseflag = 69420392; }
+            else if (____purchaseListItem == __instance.listItems[8]) { cost = 20; baseflag = 69420393; }
+            else if (____purchaseListItem == __instance.listItems[9]) { cost = 30; baseflag = 69420394; }
+
+            if (file.GetFruitCount(fruitCategoryInfo.affectionType) < cost) { return false; }
+
+            if (file.GetFlagValue("loc_" + (baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1)
+            {
+                Game.Persistence.playerFile.AddFruitCount(fruitCategoryInfo.affectionType, -cost);
+                file.SetFlagValue("loc_" + (baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString(), 1);
+                ArchipelagoClient.sendloc(baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10));
+            }
+
+            __instance.Populate(____playerFileGirl);
+
+            return false;
+        }
+
+
+        /// IL CODE
+
+        /// <summary>
+        /// INJECT NOP(NO OPPERATION) INSTRUCTIONS IN THE 1ST FOR LOOP LOOKIN FOR UNKNOWN PAIRS SO THAT ITS ALWAYS SKIPED,
+        /// CHANGE THE 2ND FOR LOOP THAT LOOK FOR UNKNOWN PAIRS TO LOOK FOR ALL PAIRS THAT ARE NOT UNKOWN
+        /// </summary>
+        [HarmonyPatch(typeof(PlayerFile), "PopulateFinderSlots")]
+        [HarmonyILManipulator]
+        public static void finderslotmodificaions(ILContext ctx, MethodBase orig)
+        {
+            for (int i = 0; i < ctx.Instrs.Count; i++)
+            {
+                if (ctx.Instrs[i].Offset >= 378 && ctx.Instrs[i].Offset <= 537)
+                {
+                    ctx.Instrs[i].OpCode = OpCodes.Nop;
+                    ctx.Instrs[i].Operand = null;
+                }
+                if (ctx.Instrs[i].Offset == 563) { ctx.Instrs[i].OpCode = OpCodes.Brfalse; }
+
+            }
+
+        }
+
+        [HarmonyPatch(typeof(UiAppStyleSelectList), "Refresh")]
+        [HarmonyILManipulator]
+        public static void waudrobeoverite(ILContext ctx, MethodBase orig)
+        {
+            sbyte opp7 = 7;
+            sbyte opp1 = 1;
+            bool b = true;
+            for (int i = 0; i < ctx.Instrs.Count; i++)
+            {
+                if (ctx.Instrs[i].OpCode == OpCodes.Ldc_I4_S && ctx.Instrs[i].Operand.ToString() == "14") { ctx.Instrs[i].Operand = opp7; }
+                if (b && ctx.Instrs[i].OpCode == OpCodes.Ldloc_S && ctx.Instrs[i].Operand.ToString() == "V_4")
+                {
+                    ctx.Instrs[i].OpCode = OpCodes.Ldc_I4_S;
+                    ctx.Instrs[i].Operand = opp1;
+                    b = false;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(UiCellphoneAppWardrobe), "Start")]
+        [HarmonyILManipulator]
+        public static void waudrobeoverite2(ILContext ctx, MethodBase orig)
+        {
+            sbyte opp = 7;
+            for (int i = 0; i < ctx.Instrs.Count; i++)
+            {
+                if (ctx.Instrs[i].OpCode == OpCodes.Ldc_I4_S && ctx.Instrs[i].Operand.ToString() == "14") { ctx.Instrs[i].Operand = opp; }
+                break;
+            }
+
         }
 
     }

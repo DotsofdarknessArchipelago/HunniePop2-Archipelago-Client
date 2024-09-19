@@ -11,10 +11,10 @@ namespace HunniePop2ArchipelagoClient
     {
         public const string PluginGUID = "com.dots.hunniepop2";
         public const string PluginName = "HunniePop2Archielago";
-        public const string PluginVersion = "0.3.2";
+        public const string PluginVersion = "0.4.0";
 
         public const string ModDisplayInfo = $"{PluginName} v{PluginVersion}";
-        private const string APDisplayInfo = $"Archipelago v{PluginVersion}";
+        private const string APDisplayInfo = $"Client V({PluginVersion})";
         public static ManualLogSource BepinLogger;
         public static ArchipelagoClient ArchipelagoClient;
 
@@ -78,8 +78,14 @@ namespace HunniePop2ArchipelagoClient
                 // if your game doesn't usually show the cursor this line may be necessary
                 // Cursor.visible = false;
 
-                statusMessage = " Status: Connected";
-                GUI.Label(new Rect(5, 20, 300, 20), APDisplayInfo + statusMessage);
+                if (PluginVersion == ArchipelagoClient.ServerData.slotData["world_version"])
+                {
+                    GUI.Label(new Rect(5, 20, 300, 20), "Client/World V(" + PluginVersion + ") : Status: Connected");
+                }
+                else
+                {
+                    GUI.Label(new Rect(5, 20, 300, 20), "Client V(" + PluginVersion + "), World V(" + ArchipelagoClient.ServerData.slotData["world_version"] + "): Status: Connected");
+                }
             }
             else
             {
