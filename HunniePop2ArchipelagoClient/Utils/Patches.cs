@@ -802,9 +802,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             PlayerFile file = Game.Persistence.playerFile;
             int cost = 0;
             FruitCategoryInfo fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo((!__instance.alternative) ? ____playerFileGirl.girlDefinition.leastFavoriteAffectionType : ____playerFileGirl.girlDefinition.favoriteAffectionType);
-            if (file.GetFlagValue("loc_" + (69420392 + ((____playerFileGirl.girlDefinition.id - 1)*10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[7]; cost = 10; }
-            else if (file.GetFlagValue("loc_" + (69420393 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[8]; cost = 20; }
-            else if (file.GetFlagValue("loc_" + (69420394 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[9]; cost = 30; }
+            if (file.GetFlagValue("loc_" + (69420391 + ((____playerFileGirl.girlDefinition.id - 1)*10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[6]; cost = 10; }
+            else if (file.GetFlagValue("loc_" + (69420392 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[7]; cost = 20; }
+            else if (file.GetFlagValue("loc_" + (69420393 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[8]; cost = 30; }
+            else if (file.GetFlagValue("loc_" + (69420394 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[9]; cost = 40; }
 
             ____purchaseListItem.ShowCost(fruitCategoryInfo, cost);
 
@@ -828,9 +829,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             FruitCategoryInfo fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo((!__instance.alternative) ? ____playerFileGirl.girlDefinition.leastFavoriteAffectionType : ____playerFileGirl.girlDefinition.favoriteAffectionType);
             int cost = 0;
             int baseflag = 0;
-            if (____purchaseListItem == __instance.listItems[7]) { cost = 10; baseflag = 69420392; }
-            else if (____purchaseListItem == __instance.listItems[8]) { cost = 20; baseflag = 69420393; }
-            else if (____purchaseListItem == __instance.listItems[9]) { cost = 30; baseflag = 69420394; }
+            if (____purchaseListItem == __instance.listItems[6]) { cost = 10; baseflag = 69420391; }
+            else if (____purchaseListItem == __instance.listItems[7]) { cost = 20; baseflag = 69420392; }
+            else if (____purchaseListItem == __instance.listItems[8]) { cost = 30; baseflag = 69420393; }
+            else if (____purchaseListItem == __instance.listItems[9]) { cost = 40; baseflag = 69420394; }
 
             if (file.GetFruitCount(fruitCategoryInfo.affectionType) < cost) { return false; }
 
