@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using Archipelago.MultiClient.Net.Packets;
+using HarmonyLib;
 using HunniePop2ArchipelagoClient.Archipelago;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -69,6 +70,17 @@ namespace HunniePop2ArchipelagoClient.Utils
                     }
                     else
                     {
+
+                        PlayerFile playerFile = Game.Persistence.playerData.files[3];
+
+                        //for (int k = 69420346; k < 69420421; k++)
+                        //{
+                        //    playerFile.SetFlagValue(k.ToString(), 0);
+                        //}
+
+                        Game.Persistence.Apply(3);
+                        Game.Persistence.SaveGame();
+
                         ____titleCanvas.LoadGame(3, "MainScene");
                     }
                 }
@@ -134,6 +146,11 @@ namespace HunniePop2ArchipelagoClient.Utils
                 {
                     playerFile.SetFlagValue("loversinsteadwings", 0);
                 }
+
+                //for (int k = 69420346; k < 69420421; k++)
+                //{
+                //    playerFile.SetFlagValue(k.ToString(), 0);
+                //}
 
                 playerFile.SetFlagValue("affection base", Convert.ToInt32(ArchipelagoClient.ServerData.slotData["affection_start"]));
                 playerFile.SetFlagValue("affection addition", Convert.ToInt32(ArchipelagoClient.ServerData.slotData["affection_add"]));
@@ -237,7 +254,7 @@ namespace HunniePop2ArchipelagoClient.Utils
 
                 for (int g=1; g<13; g++)
                 {
-                    PlayerFileGirl gl =playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(g));
+                    PlayerFileGirl gl = playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(g));
                     for (int g2=0; g2<gl.girlDefinition.baggageItemDefs.Count(); g2++)
                     {
                         if (gl.girlDefinition.baggageItemDefs[g2] != Util.baggagestuff())
@@ -245,6 +262,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                             gl.girlDefinition.baggageItemDefs[g2] = Util.baggagestuff();
                         }
                     }
+                    gl.stylesOnDates = true;
                 }
                 for (int p = 1; p < 25; p++)
                 {
@@ -256,15 +274,30 @@ namespace HunniePop2ArchipelagoClient.Utils
                 while (b){
                     if (ArchipelagoClient.itemstoprocess.Count > 0)
                     {
-                        String flag = ArchipelagoClient.itemstoprocess.Dequeue().ToString();
+                        int flagi = (int)ArchipelagoClient.itemstoprocess.Dequeue();
+                        string flag = flagi.ToString();
+                        //ArchipelagoConsole.LogMessage("sdjgfjsdfsj");
+                        //if (flagi >= 69420345 && flagi <= 69420421)
+                        //{
+                        //    ArchipelagoConsole.LogMessage(playerFile.GetFlagValue(flag).ToString());
+                        //    if (playerFile.GetFlagValue(flag) == -1) { playerFile.SetFlagValue(flag, 0); }
+                        //    playerFile.SetFlagValue(flag, (playerFile.GetFlagValue(flag) + 1));
+                        //    ArchipelagoConsole.LogMessage(playerFile.GetFlagValue(flag).ToString());
+                        //}
+                        //else
+                        //{
+                        //    if (playerFile.GetFlagValue(flag) == -1)
+                        //    {
+                        //        playerFile.SetFlagValue(flag, 0);
+                        //    }
+                        //}
                         if (playerFile.GetFlagValue(flag) == -1)
                         {
                             playerFile.SetFlagValue(flag, 0);
                         }
-                        else
-                        {
-                            ArchipelagoConsole.LogMessage("Item Id #" + flag + " already in game");
-                        }
+
+
+
                     }
                     else
                     {
@@ -283,7 +316,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                     }
                 }
 
-                playerFile.finderSlots = Util.genfinder(playerFile.girlPairs);
+                playerFile.finderSlots = Util.genfinder(playerFile);
                 playerFile.storeProducts = Util.genStore(playerFile);
 
                 playerFile.storyProgress = 7;
@@ -300,6 +333,7 @@ namespace HunniePop2ArchipelagoClient.Utils
 
                 Game.Persistence.Apply(savindex);
                 Game.Persistence.SaveGame();
+
                 ____titleCanvas.LoadGame(savindex, "MainScene");
             }
             if (Game.Persistence.playerData.files[3].started)
@@ -539,7 +573,11 @@ namespace HunniePop2ArchipelagoClient.Utils
             if (__result == false) { return; }
             if (Game.Persistence.playerFile.GetFlagValue("questions_skiped") == 0)
             {
-                Archipelago.ArchipelagoClient.sendloc(69420144 + (__instance.girlDefinition.id - 1) * 20 + questionDef.id);
+                if (Game.Persistence.playerFile.GetFlagValue("question:" + __instance.girlDefinition.id + ":" + questionDef.id) != 1)
+                {
+                    Archipelago.ArchipelagoClient.sendloc(69420144 + (__instance.girlDefinition.id - 1) * 20 + questionDef.id);
+                    Game.Persistence.playerFile.SetFlagValue("question:" + __instance.girlDefinition.id + ":" + questionDef.id, 1);
+                }
             }
         }
 
@@ -795,55 +833,99 @@ namespace HunniePop2ArchipelagoClient.Utils
             ____hidden = false;
         }
 
-        [HarmonyPatch(typeof(UiAppStyleSelectList), "Refresh")]
-        [HarmonyPostfix]
-        public static void outfitbuylist(UiAppStyleSelectList __instance, ref PlayerFileGirl ____playerFileGirl, ref UiAppSelectListItem ____purchaseListItem)
+        [HarmonyPatch(typeof(UiCellphoneAppWardrobe), "OnCheckBoxChanged")]
+        [HarmonyPrefix]
+        public static bool styletoggledisable()
         {
-            PlayerFile file = Game.Persistence.playerFile;
-            int cost = 0;
-            FruitCategoryInfo fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo((!__instance.alternative) ? ____playerFileGirl.girlDefinition.leastFavoriteAffectionType : ____playerFileGirl.girlDefinition.favoriteAffectionType);
-            if (file.GetFlagValue("loc_" + (69420391 + ((____playerFileGirl.girlDefinition.id - 1)*10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[6]; cost = 10; }
-            else if (file.GetFlagValue("loc_" + (69420392 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[7]; cost = 20; }
-            else if (file.GetFlagValue("loc_" + (69420393 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[8]; cost = 30; }
-            else if (file.GetFlagValue("loc_" + (69420394 + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1) { ____purchaseListItem = __instance.listItems[9]; cost = 40; }
+            return false;
+        }
+        //
+        //[HarmonyPatch(typeof(UiAppStyleSelectList), "OnBuyButtonPressed")]
+        //[HarmonyPrefix]
+        //public static bool waudrobebuy(ButtonBehavior buttonBehavior, UiAppStyleSelectList __instance, ref PlayerFileGirl ____playerFileGirl, ref UiAppSelectListItem ____purchaseListItem)
+        //{
+        //    if (____purchaseListItem==null) { return false; }
+        //
+        //    PlayerFile file = Game.Persistence.playerFile;
+        //    FruitCategoryInfo fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo((!__instance.alternative) ? ____playerFileGirl.girlDefinition.leastFavoriteAffectionType : ____playerFileGirl.girlDefinition.favoriteAffectionType);
+        //    int cost = 0;
+        //    int baseflag = 0;
+        //    if (____purchaseListItem == __instance.listItems[6]) { cost = 10; baseflag = 69420391; }
+        //    else if (____purchaseListItem == __instance.listItems[7]) { cost = 20; baseflag = 69420392; }
+        //    else if (____purchaseListItem == __instance.listItems[8]) { cost = 30; baseflag = 69420393; }
+        //    else if (____purchaseListItem == __instance.listItems[9]) { cost = 40; baseflag = 69420394; }
+        //
+        //    if (file.GetFruitCount(fruitCategoryInfo.affectionType) < cost) { return false; }
+        //
+        //    if (file.GetFlagValue("loc_" + (baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1)
+        //    {
+        //        Game.Persistence.playerFile.AddFruitCount(fruitCategoryInfo.affectionType, -cost);
+        //        file.SetFlagValue("loc_" + (baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString(), 1);
+        //        ArchipelagoClient.sendloc(baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10));
+        //    }
+        //
+        //    __instance.Populate(____playerFileGirl);
+        //
+        //    return false;
+        //}
 
-            ____purchaseListItem.ShowCost(fruitCategoryInfo, cost);
+        [HarmonyPatch(typeof(TalkManager), "TalkStep")]
+        [HarmonyPrefix]
+        public static bool question(TalkManager __instance, ref int ____talkStepIndex, ref List<QuestionDefinition> ____questionPool, ref UiDoll ____targetDoll)
+        {
+            if (__instance.talkType == TalkWithType.FAVORITE_QUESTION)
+            {
+                if (____talkStepIndex == 0)
+                {
+                    List<QuestionDefinition> pool = new List<QuestionDefinition>();
+                    List<QuestionDefinition> badpool = new List<QuestionDefinition>();
+                    List<QuestionDefinition> goodpool = new List<QuestionDefinition>();
 
-            if (file.GetFruitCount(fruitCategoryInfo.affectionType) >= cost)
-            {
-                __instance.buyButton.Enable();
+                    for (int i = 0; i < 20; i++)
+                    {
+                        if (Game.Persistence.playerFile.GetFlagValue("question:" + ____targetDoll.girlDefinition.id + ":" + i+1) != 1)
+                        {
+                            goodpool.Add(Game.Session.Talk.favQuestionDefinitions[i]);
+                        }
+                        else
+                        {
+                            badpool.Add(Game.Session.Talk.favQuestionDefinitions[i]);
+                        }
+                    }
+
+                    for (int j = 1; j < 4; j++)
+                    {
+                        if (goodpool.Count > 0)
+                        {
+                            int index = UnityEngine.Random.Range(0, goodpool.Count);
+                            pool.Add(goodpool[index]);
+                            goodpool.RemoveAt(index);
+                        }
+                        else
+                        {
+
+                            int index = UnityEngine.Random.Range(0, badpool.Count);
+                            pool.Add(badpool[index]);
+                            badpool.RemoveAt(index);
+                        }
+                    }
+                    ____questionPool = pool;
+                }
             }
-            else
-            {
-                __instance.buyButton.Disable();
-            }
+            return true;
         }
 
-        [HarmonyPatch(typeof(UiAppStyleSelectList), "OnBuyButtonPressed")]
+
+        [HarmonyPatch(typeof(PlayerFile), "PopulateFinderSlots")]
         [HarmonyPrefix]
-        public static bool waudrobebuy(ButtonBehavior buttonBehavior, UiAppStyleSelectList __instance, ref PlayerFileGirl ____playerFileGirl, ref UiAppSelectListItem ____purchaseListItem)
+        public static bool finder(PlayerFile __instance)
         {
-            if (____purchaseListItem==null) { return false; }
-
-            PlayerFile file = Game.Persistence.playerFile;
-            FruitCategoryInfo fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo((!__instance.alternative) ? ____playerFileGirl.girlDefinition.leastFavoriteAffectionType : ____playerFileGirl.girlDefinition.favoriteAffectionType);
-            int cost = 0;
-            int baseflag = 0;
-            if (____purchaseListItem == __instance.listItems[6]) { cost = 10; baseflag = 69420391; }
-            else if (____purchaseListItem == __instance.listItems[7]) { cost = 20; baseflag = 69420392; }
-            else if (____purchaseListItem == __instance.listItems[8]) { cost = 30; baseflag = 69420393; }
-            else if (____purchaseListItem == __instance.listItems[9]) { cost = 40; baseflag = 69420394; }
-
-            if (file.GetFruitCount(fruitCategoryInfo.affectionType) < cost) { return false; }
-
-            if (file.GetFlagValue("loc_" + (baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString()) == -1)
+            for (int i=0; i<__instance.finderSlots.Count; i++)
             {
-                Game.Persistence.playerFile.AddFruitCount(fruitCategoryInfo.affectionType, -cost);
-                file.SetFlagValue("loc_" + (baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10)).ToString(), 1);
-                ArchipelagoClient.sendloc(baseflag + ((____playerFileGirl.girlDefinition.id - 1) * 10));
+                __instance.finderSlots[i].Clear();
             }
 
-            __instance.Populate(____playerFileGirl);
+            __instance.finderSlots = Util.genfinder(__instance);
 
             return false;
         }
@@ -855,22 +937,22 @@ namespace HunniePop2ArchipelagoClient.Utils
         /// INJECT NOP(NO OPPERATION) INSTRUCTIONS IN THE 1ST FOR LOOP LOOKIN FOR UNKNOWN PAIRS SO THAT ITS ALWAYS SKIPED,
         /// CHANGE THE 2ND FOR LOOP THAT LOOK FOR UNKNOWN PAIRS TO LOOK FOR ALL PAIRS THAT ARE NOT UNKOWN
         /// </summary>
-        [HarmonyPatch(typeof(PlayerFile), "PopulateFinderSlots")]
-        [HarmonyILManipulator]
-        public static void finderslotmodificaions(ILContext ctx, MethodBase orig)
-        {
-            for (int i = 0; i < ctx.Instrs.Count; i++)
-            {
-                if (ctx.Instrs[i].Offset >= 378 && ctx.Instrs[i].Offset <= 537)
-                {
-                    ctx.Instrs[i].OpCode = OpCodes.Nop;
-                    ctx.Instrs[i].Operand = null;
-                }
-                if (ctx.Instrs[i].Offset == 563) { ctx.Instrs[i].OpCode = OpCodes.Brfalse; }
-
-            }
-
-        }
+        //[HarmonyPatch(typeof(PlayerFile), "PopulateFinderSlots")]
+        //[HarmonyILManipulator]
+        //public static void finderslotmodificaions(ILContext ctx, MethodBase orig)
+        //{
+        //    for (int i = 0; i < ctx.Instrs.Count; i++)
+        //    {
+        //        if (ctx.Instrs[i].Offset >= 378 && ctx.Instrs[i].Offset <= 537)
+        //        {
+        //            ctx.Instrs[i].OpCode = OpCodes.Nop;
+        //            ctx.Instrs[i].Operand = null;
+        //        }
+        //        if (ctx.Instrs[i].Offset == 563) { ctx.Instrs[i].OpCode = OpCodes.Brfalse; }
+        //
+        //    }
+        //
+        //}
 
         [HarmonyPatch(typeof(UiAppStyleSelectList), "Refresh")]
         [HarmonyILManipulator]
@@ -899,9 +981,60 @@ namespace HunniePop2ArchipelagoClient.Utils
             for (int i = 0; i < ctx.Instrs.Count; i++)
             {
                 if (ctx.Instrs[i].OpCode == OpCodes.Ldc_I4_S && ctx.Instrs[i].Operand.ToString() == "14") { ctx.Instrs[i].Operand = opp; }
-                break;
+                //break;
             }
+        }
 
+        [HarmonyPatch(typeof(TalkManager), "TalkStep")]
+        [HarmonyILManipulator]
+        public static void questionil(ILContext ctx, MethodBase orig)
+        {
+            int s = 0;
+            int r = 0;
+
+            for (int i = 0; i < ctx.Instrs.Count; i++)
+            {
+                if (s == 3)
+                {
+                    if (r == 2)
+                    {
+                        if (ctx.Instrs[i].OpCode == OpCodes.Newobj)
+                        {
+                            break;
+                        }
+                        ctx.Instrs[i].OpCode = OpCodes.Nop;
+                        ctx.Instrs[i].Operand = null;
+                    }
+                    else
+                    {
+                        if (ctx.Instrs[i].OpCode == OpCodes.Ret)
+                        {
+                            r++;
+                        }
+                    }
+                }
+                else
+                {
+                    if (ctx.Instrs[i].OpCode == OpCodes.Switch) 
+                    {
+                        s++;
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(LocationManager), "ResetDolls")]
+        [HarmonyILManipulator]
+        public static void dateoutfitoveride(ILContext ctx, MethodBase orig)
+        {
+            for (int i=0; i<ctx.Instrs.Count; i++)
+            {
+                if (ctx.Instrs[i].OpCode == OpCodes.Ldc_I4_2) 
+                { 
+                    ctx.Instrs[i].OpCode = OpCodes.Ldc_I4_0;
+                    break;
+                }
+            }
         }
 
     }
@@ -925,16 +1058,23 @@ namespace HunniePop2ArchipelagoClient.Utils
         /// <summary>
         /// GENERATE THE INITAL FINDER SLOTS WHEN SETTING UP A NEW GAME
         /// </summary>
-        public static List<PlayerFileFinderSlot> genfinder(List<PlayerFileGirlPair> filepair)
+        public static List<PlayerFileFinderSlot> genfinder(PlayerFile file)
         {
 
             List<GirlPairDefinition> pair = new List<GirlPairDefinition>();
 
-            for (int i = 0; i < filepair.Count; i++)
+            for (int i = 0; i < file.girlPairs.Count; i++)
             {
-                if (filepair[i].girlPairDefinition.girlDefinitionOne.id == 13 || filepair[i].girlPairDefinition.girlDefinitionTwo.id == 13) { continue; }
-                if (filepair[i].relationshipType != GirlPairRelationshipType.UNKNOWN) { pair.Add(filepair[i].girlPairDefinition); }
+                if (file.girlPairs[i].girlPairDefinition.girlDefinitionOne.id >= 13 || file.girlPairs[i].girlPairDefinition.girlDefinitionTwo.id >= 13) { continue; }
+                if (file.girlPairs[i].relationshipType != GirlPairRelationshipType.UNKNOWN) 
+                { 
+                    if (file.GetPlayerFileGirl(file.girlPairs[i].girlPairDefinition.girlDefinitionOne).playerMet && file.GetPlayerFileGirl(file.girlPairs[i].girlPairDefinition.girlDefinitionTwo).playerMet)
+                    {
+                        pair.Add(file.girlPairs[i].girlPairDefinition);
+                    }
+                }
             }
+
 
             int initalpaircount = pair.Count;
 
@@ -949,7 +1089,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                 int a = UnityEngine.Random.Range(0, areas.Count - 1);
 
                 p = Math.Min(p, pair.Count - 1);
-                a = Math.Min(a, pair.Count - 1);
+                a = Math.Min(a, areas.Count - 1);
 
                 PlayerFileFinderSlot findSlot = new PlayerFileFinderSlot();
                 findSlot.locationDefinition = Game.Data.Locations.Get(areas[a]);
@@ -1230,8 +1370,128 @@ namespace HunniePop2ArchipelagoClient.Utils
 
                         file.flags[i].flagValue = 1;
                     }
-                    else
+                    else if (flagint > 69420344 && flagint < 69420422)
                     {
+                        //ArchipelagoConsole.LogMessage("OHI");
+                        //ArchipelagoConsole.LogMessage(flagint.ToString());
+                        if (flagint == 69420345)
+                        {
+                            //ArchipelagoConsole.LogMessage("nothing");
+                            //ArchipelagoConsole.LogMessage("OBTAINED NOTHING");
+                        }
+                        else if (flagint == 69420421)
+                        {
+                            ArchipelagoConsole.LogMessage("tokens");
+
+                            int pr = -1;
+                            PlayerFileFlag fl = new PlayerFileFlag();
+                            for (int j=0; j < file.flags.Count; j++)
+                            {
+                                if (file.flags[j].flagName == (flagint.ToString() + "processed"))
+                                {
+                                    pr=j; break;
+                                }
+                            }
+
+                            if (pr == -1)
+                            {
+                                ArchipelagoConsole.LogMessage("no processed flag");
+                                fl.flagName = (flagint.ToString() + "processed");
+                                fl.flagValue = 0;
+
+                                while (file.flags[i].flagValue > fl.flagValue)
+                                {
+                                    fl.flagValue++;
+                                    int b = UnityEngine.Random.Range(0, 20);
+                                    int g = UnityEngine.Random.Range(0, 20);
+                                    int o = UnityEngine.Random.Range(0, 20);
+                                    int r = UnityEngine.Random.Range(0, 20);
+
+                                    file.AddFruitCount(PuzzleAffectionType.TALENT, b);
+                                    file.AddFruitCount(PuzzleAffectionType.FLIRTATION, g);
+                                    file.AddFruitCount(PuzzleAffectionType.ROMANCE, o);
+                                    file.AddFruitCount(PuzzleAffectionType.SEXUALITY, r);
+                                    ArchipelagoConsole.LogMessage("OBTAINED SEEDS: " + b.ToString() + " Blue, " + g.ToString() + " Green, " + o.ToString() + " Orange, " + r.ToString() + " Red");
+                                }
+                                file.flags.Add(fl);
+
+                            }
+                            else
+                            {
+                                ArchipelagoConsole.LogMessage("processed flag");
+                                while (file.flags[i].flagValue > file.flags[pr].flagValue)
+                                {
+                                    file.flags[pr].flagValue++;
+                                    int b = UnityEngine.Random.Range(0, 20);
+                                    int g = UnityEngine.Random.Range(0, 20);
+                                    int o = UnityEngine.Random.Range(0, 20);
+                                    int r = UnityEngine.Random.Range(0, 20);
+
+                                    file.AddFruitCount(PuzzleAffectionType.TALENT, b);
+                                    file.AddFruitCount(PuzzleAffectionType.FLIRTATION, g);
+                                    file.AddFruitCount(PuzzleAffectionType.ROMANCE, o);
+                                    file.AddFruitCount(PuzzleAffectionType.SEXUALITY, r);
+                                    ArchipelagoConsole.LogMessage("OBTAINED SEEDS: " + b.ToString() + " Blue, " + g.ToString() + " Green, " + o.ToString() + " Orange, " + r.ToString() + " Red");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ArchipelagoConsole.LogMessage("item");
+                            int pr = -1;
+                            PlayerFileFlag fl = new PlayerFileFlag();
+                            for (int j = 0; j < file.flags.Count; j++)
+                            {
+                                if (file.flags[j].flagName == (flagint.ToString() + "processed"))
+                                {
+                                    pr = j; break;
+                                }
+                            }
+
+                            if (pr == -1)
+                            {
+                                ArchipelagoConsole.LogMessage("no processed flag");
+                                fl.flagName = (flagint.ToString() + "processed");
+                                fl.flagValue = 0;
+
+                                while (file.flags[i].flagValue > fl.flagValue)
+                                {
+                                    ArchipelagoConsole.LogMessage("itemtoprocess");
+                                    if (file.IsInventoryFull())
+                                    {
+                                        ArchipelagoConsole.LogMessage("INVENTORY FULL COUDNT PROCESS ITEM");
+                                        break;
+                                    }
+                                    fl.flagValue++;
+                                    ArchipelagoConsole.LogMessage("additem");
+                                    file.AddInventoryItem(Game.Data.Items.Get(Util.itemflagtoid(flagint)));
+                                    ArchipelagoConsole.LogMessage("OBTAINED " + Game.Data.Items.Get(flagint).itemName + " ITEM");
+
+                                }
+                                file.flags.Add(fl);
+
+                            }
+                            else
+                            {
+                                ArchipelagoConsole.LogMessage("processed flag");
+                                while (file.flags[i].flagValue > file.flags[pr].flagValue)
+                                {
+                                    if (file.IsInventoryFull())
+                                    {
+                                        ArchipelagoConsole.LogMessage("INVENTORY FULL COUDNT PROCESS ITEM");
+                                        break;
+                                    }
+                                    file.flags[pr].flagValue++;
+                                    ArchipelagoConsole.LogMessage("additem");
+                                    file.AddInventoryItem(Game.Data.Items.Get(Util.itemflagtoid(flagint)));
+                                    ArchipelagoConsole.LogMessage("OBTAINED " + Game.Data.Items.Get(flagint).itemName + " ITEM");
+
+                                }
+
+                            }
+
+                        }
+
 
                     }
                 }
@@ -1471,6 +1731,90 @@ namespace HunniePop2ArchipelagoClient.Utils
 
         }
 
+
+        /// <summary>
+        /// HELPER METHOD TO CONVERT A ITEM FLAG ID TO AN ITEM ID
+        /// </summary>
+        public static int itemflagtoid(int flag)
+        {
+            if (flag == 69420346) { return 250; }
+            else if (flag == 69420347) { return 251; }
+            else if (flag == 69420348) { return 252; }
+            else if (flag == 69420349) { return 253; }
+            else if (flag == 69420350) { return 254; }
+            else if (flag == 69420351) { return 255; }
+            else if (flag == 69420352) { return 256; }
+            else if (flag == 69420353) { return 257; }
+            else if (flag == 69420354) { return 258; }
+            else if (flag == 69420355) { return 259; }
+            else if (flag == 69420356) { return 261; }
+            else if (flag == 69420357) { return 262; }
+            else if (flag == 69420358) { return 263; }
+            else if (flag == 69420359) { return 264; }
+            else if (flag == 69420360) { return 265; }
+            else if (flag == 69420361) { return 266; }
+            else if (flag == 69420362) { return 268; }
+            else if (flag == 69420363) { return 25; }
+            else if (flag == 69420364) { return 26; }
+            else if (flag == 69420365) { return 27; }
+            else if (flag == 69420366) { return 28; }
+            else if (flag == 69420367) { return 29; }
+            else if (flag == 69420368) { return 30; }
+            else if (flag == 69420369) { return 32; }
+            else if (flag == 69420370) { return 31; }
+            else if (flag == 69420371) { return 33; }
+            else if (flag == 69420372) { return 284; }
+            else if (flag == 69420373) { return 285; }
+            else if (flag == 69420374) { return 286; }
+            else if (flag == 69420375) { return 287; }
+            else if (flag == 69420376) { return 288; }
+            else if (flag == 69420377) { return 289; }
+            else if (flag == 69420378) { return 34; }
+            else if (flag == 69420379) { return 35; }
+            else if (flag == 69420380) { return 36; }
+            else if (flag == 69420381) { return 37; }
+            else if (flag == 69420382) { return 38; }
+            else if (flag == 69420383) { return 39; }
+            else if (flag == 69420384) { return 41; }
+            else if (flag == 69420385) { return 40; }
+            else if (flag == 69420386) { return 42; }
+            else if (flag == 69420387) { return 43; }
+            else if (flag == 69420388) { return 44; }
+            else if (flag == 69420389) { return 45; }
+            else if (flag == 69420390) { return 46; }
+            else if (flag == 69420391) { return 47; }
+            else if (flag == 69420392) { return 48; }
+            else if (flag == 69420393) { return 50; }
+            else if (flag == 69420394) { return 49; }
+            else if (flag == 69420395) { return 51; }
+            else if (flag == 69420396) { return 52; }
+            else if (flag == 69420397) { return 249; }
+            else if (flag == 69420398) { return 294; }
+            else if (flag == 69420399) { return 295; }
+            else if (flag == 69420400) { return 296; }
+            else if (flag == 69420401) { return 297; }
+            else if (flag == 69420402) { return 298; }
+            else if (flag == 69420403) { return 299; }
+            else if (flag == 69420404) { return 300; }
+            else if (flag == 69420405) { return 301; }
+            else if (flag == 69420406) { return 269; }
+            else if (flag == 69420407) { return 270; }
+            else if (flag == 69420408) { return 271; }
+            else if (flag == 69420409) { return 272; }
+            else if (flag == 69420410) { return 273; }
+            else if (flag == 69420411) { return 274; }
+            else if (flag == 69420412) { return 275; }
+            else if (flag == 69420413) { return 276; }
+            else if (flag == 69420414) { return 277; }
+            else if (flag == 69420415) { return 278; }
+            else if (flag == 69420416) { return 279; }
+            else if (flag == 69420417) { return 280; }
+            else if (flag == 69420418) { return 281; }
+            else if (flag == 69420419) { return 282; }
+            else if (flag == 69420420) { return 283; }
+
+            return 0;
+        }
 
     }
 }

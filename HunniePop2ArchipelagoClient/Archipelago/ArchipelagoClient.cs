@@ -141,6 +141,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         {
             var receivedItem = helper.DequeueItem();
             itemstoprocess.Enqueue(receivedItem.ItemId);
+            
 
             ArchipelagoConsole.LogMessage("ITEM RECIEVED: " + receivedItem.ItemName);
             ArchipelagoConsole.LogMessage("TOTAL ITEMS TO BE PROCESSED: " +itemstoprocess.Count);
@@ -161,6 +162,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         public static string seed()
         {
             return session.RoomState.Seed;
+            
         }
 
         public static void complete()
