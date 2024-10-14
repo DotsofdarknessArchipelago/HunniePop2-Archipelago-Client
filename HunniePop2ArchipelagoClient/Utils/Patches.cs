@@ -1,12 +1,13 @@
-﻿using Archipelago.MultiClient.Net.Packets;
+﻿using Archipelago.MultiClient.Net.Models;
+using Archipelago.MultiClient.Net.Packets;
 using HarmonyLib;
 using HunniePop2ArchipelagoClient.Archipelago;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Linq;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -118,6 +119,12 @@ namespace HunniePop2ArchipelagoClient.Utils
                 playerFile.SetFlagValue("pollys_junk", __instance.settingSelectorPolly.selectedIndex);
                 playerFile.SetFlagValue("first_location_id", 0);
                 playerFile.SetFlagValue("skip_tutorial", 1);
+
+
+                playerFile.fruitCounts[0] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_blue_seed"]);
+                playerFile.fruitCounts[1] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_green_seed"]);
+                playerFile.fruitCounts[2] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_orange_seed"]);
+                playerFile.fruitCounts[3] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_red_seed"]);
 
                 playerFile.SetFlagValue(ArchipelagoClient.seed(), 1);
 
@@ -252,23 +259,11 @@ namespace HunniePop2ArchipelagoClient.Utils
                     }
                 }
 
-                for (int g=1; g<13; g++)
-                {
-                    PlayerFileGirl gl = playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(g));
-                    for (int g2=0; g2<gl.girlDefinition.baggageItemDefs.Count(); g2++)
-                    {
-                        if (gl.girlDefinition.baggageItemDefs[g2] != Util.baggagestuff())
-                        {
-                            gl.girlDefinition.baggageItemDefs[g2] = Util.baggagestuff();
-                        }
-                    }
-                    gl.stylesOnDates = true;
-                }
                 for (int p = 1; p < 25; p++)
                 {
                     playerFile.GetPlayerFileGirlPair(Game.Data.GirlPairs.Get(p));
                 }
-
+                /*
                 int i;
                 bool b = true;
                 while (b){
@@ -303,7 +298,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                     {
                         b = false;
                     }
-                }
+                }*/
 
                 Util.archflagprocess(playerFile);
 
@@ -316,6 +311,23 @@ namespace HunniePop2ArchipelagoClient.Utils
                     }
                 }
 
+                for (int g = 1; g < 13; g++)
+                {
+                    PlayerFileGirl gl = playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(g));
+                    int bflag = ((g - 1) * 3) + 69420189;
+                    List<ItemDefinition> deflist = new List<ItemDefinition>();
+                    if (ArchipelagoClient.alist.hasitem(bflag)) { deflist.Add(gl.girlDefinition.baggageItemDefs[0]); }
+                    else { deflist.Add(Util.baggagestuff()); }
+                    if (ArchipelagoClient.alist.hasitem(bflag+1)) { deflist.Add(gl.girlDefinition.baggageItemDefs[1]); }
+                    else { deflist.Add(Util.baggagestuff()); }
+                    if (ArchipelagoClient.alist.hasitem(bflag+2)) { deflist.Add(gl.girlDefinition.baggageItemDefs[2]); }
+                    else { deflist.Add(Util.baggagestuff()); }
+
+                    gl.girlDefinition.baggageItemDefs = deflist;
+
+                    gl.stylesOnDates = true;
+                }
+
                 playerFile.finderSlots = Util.genfinder(playerFile);
                 playerFile.storeProducts = Util.genStore(playerFile);
 
@@ -323,11 +335,6 @@ namespace HunniePop2ArchipelagoClient.Utils
                 playerFile.daytimeElapsed = 10;
                 playerFile.finderRestockTime = 10;
                 playerFile.storeRestockDay = 2;
-
-                playerFile.fruitCounts[0] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_blue_seed"]);
-                playerFile.fruitCounts[1] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_green_seed"]);
-                playerFile.fruitCounts[2] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_orange_seed"]);
-                playerFile.fruitCounts[3] = Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_red_seed"]);
 
                 playerFile.locationDefinition = Game.Data.Locations.Get(21);
 
@@ -347,23 +354,28 @@ namespace HunniePop2ArchipelagoClient.Utils
             }
             return false;
         }
-
+        /*
         [HarmonyPatch(typeof(PlayerFile), "ReadData")]
         [HarmonyPostfix]
         public static void loadoverite(PlayerFile __instance)
         {
+            if (!ArchipelagoClient.Authenticated) { return; }
             for (int g = 1; g < 13; g++)
             {
                 PlayerFileGirl gl = __instance.GetPlayerFileGirl(Game.Data.Girls.Get(g));
-                for (int g2 = 0; g2 < gl.girlDefinition.baggageItemDefs.Count(); g2++)
-                {
-                    if (gl.girlDefinition.baggageItemDefs[g2] != Util.baggagestuff() && __instance.GetFlagValue((((gl.girlDefinition.id-1)*3)+g2+69420189).ToString()) == -1)
-                    {
-                        gl.girlDefinition.baggageItemDefs[g2] = Util.baggagestuff();
-                    }
-                }
+                int bflag = ((g - 1) * 3) + 69420189;
+                List<ItemDefinition> deflist = new List<ItemDefinition>();
+                if (ArchipelagoClient.alist.hasitem(bflag)) { deflist[0] = gl.girlDefinition.baggageItemDefs[0]; }
+                else { deflist[0] = Util.baggagestuff(); }
+                if (ArchipelagoClient.alist.hasitem(bflag + 1)) { deflist[1] = gl.girlDefinition.baggageItemDefs[1]; }
+                else { deflist[1] = Util.baggagestuff(); }
+                if (ArchipelagoClient.alist.hasitem(bflag + 2)) { deflist[2] = gl.girlDefinition.baggageItemDefs[2]; }
+                else { deflist[2] = Util.baggagestuff(); }
+
+                gl.girlDefinition.baggageItemDefs = deflist;
+
             }
-        }
+        }*/
 
         /// <summary>
         /// OVERIDE THE STORE POPULATION AND POPULATE IT WITH WHAT WE WANT
@@ -397,35 +409,16 @@ namespace HunniePop2ArchipelagoClient.Utils
                 ArchipelagoClient.complete();
             }
 
-            bool b = true;
-            while (b)
+            if (ArchipelagoClient.alist.needprocessing())
             {
-                if (ArchipelagoClient.itemstoprocess.Count > 0)
-                {
-                    String flag = ArchipelagoClient.itemstoprocess.Dequeue().ToString();
-                    if (file.GetFlagValue(flag) == -1)
-                    {
-                        file.SetFlagValue(flag.ToString(), 0);
-                    }
-                }
-                else
-                {
-                    b=false;
-                }
+                Util.archflagprocess(file);
             }
 
-            for (int i = 0; i < file.girls.Count; i++)
+            using (StreamWriter archfile = File.CreateText(Application.persistentDataPath + "/archdata"))
             {
-                if (file.girls[i].learnedBaggage.Count > 3)
-                {
-                    for (int j = file.girls[i].learnedBaggage.Count -1; j > 3; j--)
-                    {
-                        file.girls[i].learnedBaggage.RemoveAt(j);
-                    }
-                }
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(archfile, ArchipelagoClient.alist);
             }
-
-            Util.archflagprocess(file);
 
         }
 
@@ -495,7 +488,16 @@ namespace HunniePop2ArchipelagoClient.Utils
             if (draggable.type == DraggableType.INVENTORY_SLOT && (draggable.GetItemDefinition().itemType == ItemType.UNIQUE_GIFT || draggable.GetItemDefinition().itemType == ItemType.SHOES))
             {
                 //ArchipelagoConsole.LogMessage("GIFT ITEM TRASHED with ID:" + draggable.GetItemDefinition().id.ToString());
-                Game.Persistence.playerFile.SetFlagValue(Util.idtoflag(draggable.GetItemDefinition().id).ToString(), 2);
+                //Game.Persistence.playerFile.SetFlagValue(Util.idtoflag(draggable.GetItemDefinition().id).ToString(), 2);
+                int flag = Util.idtoflag(draggable.GetItemDefinition().id);
+                for (int i=0; i < ArchipelagoClient.alist.list.Count; i++)
+                {
+                    if (ArchipelagoClient.alist.list[i].item.ItemId == flag && ArchipelagoClient.alist.list[i].processed) 
+                    {
+                        ArchipelagoClient.alist.list[i].putinshop = true;
+                    }
+                }
+
             }
         }
 
@@ -513,23 +515,10 @@ namespace HunniePop2ArchipelagoClient.Utils
             if (itemSlotBehavior.itemDefinition.itemType == ItemType.FRUIT)
             {
                 ArchipelagoConsole.LogMessage(itemSlotBehavior.itemDefinition.id.ToString());
-                List<int> l = new List<int>();
+                
 
-                for (int s = 0; true; s++)
-                {
-                    if (Game.Persistence.playerFile.GetFlagValue("shopslot" + s.ToString()) == 0)
-                    {
-                        l.Add(s);
-                    }
-                    else if ((Game.Persistence.playerFile.GetFlagValue("shopslot" + s.ToString()) == -1))
-                    {
-                        break;
-                    }
-                }
-
-                int num = UnityEngine.Random.Range(0, l.Count - 1);
-                ArchipelagoClient.sendloc(69420506 + l[num]);
-                Game.Persistence.playerFile.SetFlagValue("shopslot" + l[num].ToString(), 1);
+                ArchipelagoClient.sendloc(69420505 + itemSlotBehavior.itemDefinition.id - 400);
+                Game.Persistence.playerFile.SetFlagValue("shopslot" + (itemSlotBehavior.itemDefinition.id - 400).ToString(), 1);
             }
         }
 
@@ -648,13 +637,13 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (affectionType == PuzzleAffectionType.SEXUALITY) { flag += 12; }
             else { flag += 0; }
 
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
 
             if (ofLevel){__result = 0;}
             else{__result = exp;}
@@ -671,21 +660,21 @@ namespace HunniePop2ArchipelagoClient.Utils
         {
             int exp = 0;
             int flag = 69420041;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
 
             if (ofLevel) { __result = 0; }
             else { __result = exp; }
@@ -702,21 +691,21 @@ namespace HunniePop2ArchipelagoClient.Utils
         {
             int exp = 0;
             int flag = 69420049;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
             flag++;
-            if (__instance.GetFlagValue(flag.ToString()) == 1) { exp += 6; }
+            if (ArchipelagoClient.alist.hasitem(flag)) { exp += 6; }
 
             if (ofLevel) { __result = 0; }
             else { __result = exp; }
@@ -779,7 +768,7 @@ namespace HunniePop2ArchipelagoClient.Utils
         [HarmonyPostfix]
         public static void test1(ref PuzzleStatus ____puzzleStatus)
         {
-            ArchipelagoConsole.LogMessage("hi");
+            //ArchipelagoConsole.LogMessage("hi");
             if (Game.Persistence.playerFile.GetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString())) == -1)
             {
                 Game.Persistence.playerFile.SetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString()), 1);
@@ -1135,12 +1124,11 @@ namespace HunniePop2ArchipelagoClient.Utils
             }
 
 
-            for (int f = 0; f < file.flags.Count; f++)
+            for (int f = 0; f < ArchipelagoClient.alist.list.Count; f++)
             {
-                int.TryParse(file.flags[f].flagName, out int flagint);
-                if (flagint > 69420092 && flagint < 69420189 && file.flags[f].flagValue == 2)
+                if (ArchipelagoClient.alist.list[f].putinshop)
                 {
-                    ItemDefinition def = Game.Data.Items.Get(Util.flagtoid(flagint));
+                    ItemDefinition def = Game.Data.Items.Get(Util.flagtoid((int)ArchipelagoClient.alist.list[f].item.ItemId));
                     girlgifts.Add(def);
                 }
             }
@@ -1182,13 +1170,30 @@ namespace HunniePop2ArchipelagoClient.Utils
         /// </summary>
         public static ItemDefinition genarchitem(int i)
         {
-            ItemDefinition item = Game.Data.Items.Get(314);
-            item.itemName = "Arch Shop Product #";
+            ScoutedItemInfo architem = ArchipelagoClient.getshopitem(i);
+
+            if (architem == null) { return null; }
+
+            ItemDefinition tmp = Game.Data.Items.Get(314);
+            ItemDefinition item = new ItemDefinition();
+
+            if ((int)architem.Flags == 1 || (int)architem.Flags == 3 || (int)architem.Flags == 5 || (int)architem.Flags == 4)
+            {
+                item.itemName = architem.Player.Name + " Progression item";
+            }
+            else if ((int)architem.Flags == 2 || (int)architem.Flags == 6)
+            {
+                item.itemName = architem.Player.Name + " Useful item";
+            }
+            else
+            {
+                item.itemName = architem.Player.Name + " Filler item";
+            }
             item.id = i+400;
-            item.itemDescription = "Buy this item to send it to another game, Trash after buying";
+            item.itemDescription = "Buy this item to send it to "+ architem.Player.Name + ", Trash after buying, shop slot #"+i.ToString();
             item.itemType = ItemType.FRUIT;
-            //item.itemSprite = Game.Data.Items.Get(314).itemSprite;
-            //item.energyDefinition = Game.Data.Items.Get(314).energyDefinition;
+            item.itemSprite = tmp.itemSprite;
+            item.energyDefinition = tmp.energyDefinition;
             //ArchipelagoConsole.LogMessage((i + 1).ToString());
             return item;
 
@@ -1218,7 +1223,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             newbagage.ailmentDefinition.enableType = AilmentEnableType.NONE;
             newbagage.baggageGirl = EditorDialogTriggerTab.KYU;
             newbagage.itemName = "TEMP BAGGAGE";
-            for (int i = newbagage.ailmentDefinition.triggers.Count() - 1; i >= 0; i--)
+            for (int i = newbagage.ailmentDefinition.triggers.Count - 1; i >= 0; i--)
             {
                 newbagage.ailmentDefinition.triggers.RemoveAt(i);
             }
@@ -1232,7 +1237,202 @@ namespace HunniePop2ArchipelagoClient.Utils
         /// </summary>
         public static void archflagprocess(PlayerFile file)
         {
+            ArchipelagoConsole.LogMessage("PROCESSING ITEMS");
             //ArchipelagoConsole.LogMessage(ArchipelagoClient.itemstoprocess.Dequeue().ToString());
+            for (int i=0; i<ArchipelagoClient.alist.list.Count; i++)
+            {
+                if (ArchipelagoClient.alist.list[i].processed) { continue; }
+                //ArchipelagoConsole.LogMessage("PROCESSING ITEM ID: " + ArchipelagoClient.alist.list[i].item.ItemName);
+
+                if (ArchipelagoClient.alist.list[i].item.ItemId > 69420000 && ArchipelagoClient.alist.list[i].item.ItemId < 69420025) 
+                {
+                    //WINGS
+                    GirlPairDefinition def = Game.Data.GirlPairs.Get((int)ArchipelagoClient.alist.list[i].item.ItemId - 69420000);
+                    if (!file.completedGirlPairs.Contains(def))
+                    {
+                        file.completedGirlPairs.Add(def);
+                        ArchipelagoConsole.LogMessage(def.name + " WING ITEM PROCESSED PROCESSED");
+                        ArchipelagoClient.alist.list[i].processed = true;
+                    }
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420024 && ArchipelagoClient.alist.list[i].item.ItemId < 69420057) 
+                {
+                    //TOKEN LV-UP
+                    ArchipelagoConsole.LogMessage("TOKEN LV-UP PROCESSED");
+                    ArchipelagoClient.alist.list[i].processed = true;
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420056 && ArchipelagoClient.alist.list[i].item.ItemId < 69420069) 
+                {
+                    //GIRL UNLOCK
+                    GirlDefinition def = Game.Data.Girls.Get((int)ArchipelagoClient.alist.list[i].item.ItemId - 69420056);
+                    file.GetPlayerFileGirl(def).playerMet = true;
+                    ArchipelagoClient.alist.list[i].processed = true;
+                    ArchipelagoConsole.LogMessage(def.girlName + " IS UNLOCKED");
+                    /*
+                    for (int j = 0; j < file.girls.Count; j++)
+                    {
+                        if (file.girls[j].girlDefinition.name == def.name && file.girls[j].playerMet == false)
+                        {
+                            file.girls[j].playerMet = true;
+                            ArchipelagoConsole.LogMessage(def.girlName + " IS UNLOCKED");
+                            ArchipelagoClient.alist.list[i].processed = true;
+                        }
+
+                    }*/
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420068 && ArchipelagoClient.alist.list[i].item.ItemId < 69420093) 
+                {
+                    //PAIR UNLOCK
+                    GirlPairDefinition def = Game.Data.GirlPairs.Get((int)ArchipelagoClient.alist.list[i].item.ItemId - 69420068);
+                    for (int j = 0; j < file.girlPairs.Count; ++j)
+                    {
+                        if (file.girlPairs[j].girlPairDefinition.id == def.id && file.girlPairs[j].relationshipType == GirlPairRelationshipType.UNKNOWN)
+                        {
+                            file.girlPairs[j].relationshipType = GirlPairRelationshipType.COMPATIBLE;
+                            file.metGirlPairs.Add(file.girlPairs[j].girlPairDefinition);
+                            ArchipelagoConsole.LogMessage(def.name + " UNLOCKED PAIR");
+                            ArchipelagoClient.alist.list[i].processed = true;
+                        }
+                    }
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420092 && ArchipelagoClient.alist.list[i].item.ItemId < 69420141) 
+                {
+                    //UNIQUE GIFT
+                    if (!file.IsInventoryFull())
+                    {
+                        ItemDefinition def = Game.Data.Items.Get(Util.flagtoid((int)ArchipelagoClient.alist.list[i].item.ItemId));
+                        file.AddInventoryItem(def);
+                        ArchipelagoConsole.LogMessage(def.itemName + " UNIQUE GIFT OBTAINED");
+                        ArchipelagoClient.alist.list[i].processed = true;
+                    }
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420140 && ArchipelagoClient.alist.list[i].item.ItemId < 69420189) 
+                {
+                    //SHOE GIFT
+                    if (!file.IsInventoryFull())
+                    {
+                        ItemDefinition def = Game.Data.Items.Get(Util.flagtoid((int)ArchipelagoClient.alist.list[i].item.ItemId));
+                        file.AddInventoryItem(def);
+                        ArchipelagoConsole.LogMessage(def.itemName + " SHOES GIFT PROCESSED");
+                        ArchipelagoClient.alist.list[i].processed = true;
+                    }
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420188 && ArchipelagoClient.alist.list[i].item.ItemId < 69420225) 
+                {
+                    //BAGGAGE
+
+                    GirlDefinition def = Game.Data.Girls.Get((((int)ArchipelagoClient.alist.list[i].item.ItemId - 69420189) / 3) + 1);
+                    ItemDefinition bagdef = Game.Data.Items.GetAllOfTypes(ItemType.BAGGAGE)[(int)ArchipelagoClient.alist.list[i].item.ItemId - 69420189];
+                    file.GetPlayerFileGirl(def).girlDefinition.baggageItemDefs[(((int)ArchipelagoClient.alist.list[i].item.ItemId - 69420189) % 3)] = bagdef;
+                    ArchipelagoConsole.LogMessage(def.girlName + " OBTAINED NEW BAGGAGGE");
+                    ArchipelagoClient.alist.list[i].processed = true;
+
+                    /*
+                    int u = (int)ArchipelagoClient.alist.list[i].item.ItemId - 69420189;
+                    for (int b = 0; b < file.girls.Count; b++)
+                    {
+                        if (file.girls[b].girlDefinition.id == (u / 3) + 1)
+                        {
+                            ItemDefinition def = Game.Data.Items.GetAllOfTypes(ItemType.BAGGAGE)[u];
+                            for (int g = 0; g < file.girls[b].girlDefinition.baggageItemDefs.Count; g++)
+                            {
+                                if (file.girls[u / 3].girlDefinition.baggageItemDefs[g].itemName == "TEMP BAGGAGE")
+                                {
+                                    file.girls[b].girlDefinition.baggageItemDefs.RemoveAt(g);
+                                    file.girls[b].girlDefinition.baggageItemDefs.Add(def);
+                                    ArchipelagoConsole.LogMessage(file.girls[b].girlDefinition.girlName + " OBTAINED NEW BAGGAGGE");
+                                    ArchipelagoClient.alist.list[i].processed = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }*/
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420224 && ArchipelagoClient.alist.list[i].item.ItemId < 69420345) 
+                {
+                    //OUTFITS
+                    int u = (int)ArchipelagoClient.alist.list[i].item.ItemId - 69420225;
+                    int girlid = (u / 10) + 1;
+                    int styleid = u % 10;
+
+                    GirlDefinition def = Game.Data.Girls.Get(girlid);
+                    if (!file.GetPlayerFileGirl(Game.Data.Girls.Get(girlid)).unlockedOutfits.Contains(styleid))
+                    {
+                        ArchipelagoConsole.LogMessage("OBTAINED " + file.GetPlayerFileGirl(Game.Data.Girls.Get(girlid)).girlDefinition.girlName + " OUTFIT #" + (styleid + 1));
+                        file.GetPlayerFileGirl(Game.Data.Girls.Get(girlid)).unlockedOutfits.Add(styleid);
+                        file.GetPlayerFileGirl(Game.Data.Girls.Get(girlid)).unlockedHairstyles.Add(styleid);
+                    }
+                    /*
+                    for (int b = 0; b < file.girls.Count; b++)
+                    {
+                        if (file.girls[b].girlDefinition.id == girlid)
+                        {
+                            if (!file.girls[b].unlockedOutfits.Contains(styleid))
+                            {
+                                ArchipelagoConsole.LogMessage("OBTAINED " + file.girls[b].girlDefinition.girlName + " OUTFIT #" + (styleid + 1));
+                                file.girls[b].unlockedOutfits.Add(styleid);
+                                file.girls[b].unlockedHairstyles.Add(styleid);
+                            }
+                        }
+                    }*/
+                    ArchipelagoClient.alist.list[i].processed = true;
+                }
+                else if (ArchipelagoClient.alist.list[i].item.ItemId > 69420344 && ArchipelagoClient.alist.list[i].item.ItemId < 69420422) 
+                {
+                    //FILLER ITEMS
+                    if ((int)ArchipelagoClient.alist.list[i].item.ItemId == 69420345)
+                    {
+                        //ArchipelagoConsole.LogMessage("nothing");
+                        ArchipelagoConsole.LogMessage("OBTAINED NOTHING");
+                        ArchipelagoClient.alist.list[i].processed = true;
+                    }
+                    else if ((int)ArchipelagoClient.alist.list[i].item.ItemId == 69420421)
+                    {
+                        //ArchipelagoConsole.LogMessage("tokens");
+
+                        int b = UnityEngine.Random.Range(0, 20);
+                        int g = UnityEngine.Random.Range(0, 20);
+                        int o = UnityEngine.Random.Range(0, 20);
+                        int r = UnityEngine.Random.Range(0, 20);
+
+                        file.AddFruitCount(PuzzleAffectionType.TALENT, b);
+                        file.AddFruitCount(PuzzleAffectionType.FLIRTATION, g);
+                        file.AddFruitCount(PuzzleAffectionType.ROMANCE, o);
+                        file.AddFruitCount(PuzzleAffectionType.SEXUALITY, r);
+                        ArchipelagoConsole.LogMessage("OBTAINED SEEDS: " + b.ToString() + " Blue, " + g.ToString() + " Green, " + o.ToString() + " Orange, " + r.ToString() + " Red");
+                        ArchipelagoClient.alist.list[i].processed = true;
+                    }
+                    else
+                    {                        
+                        if (!file.IsInventoryFull())
+                        {
+                            ArchipelagoConsole.LogMessage(Game.Data.Items.Get(Util.itemflagtoid((int)ArchipelagoClient.alist.list[i].item.ItemId)).name);
+                            //file.AddInventoryItem(Game.Data.Items.Get(Util.itemflagtoid((int)ArchipelagoClient.alist.list[i].item.ItemId)));
+
+                            for (int k = 0; k < 35; k++)
+                            {
+                                PlayerFileInventorySlot playerFileInventorySlot = file.GetPlayerFileInventorySlot(k);
+                                if (playerFileInventorySlot.itemDefinition == null)
+                                {
+                                    playerFileInventorySlot.itemDefinition = Game.Data.Items.Get(Util.itemflagtoid((int)ArchipelagoClient.alist.list[i].item.ItemId));
+                                    playerFileInventorySlot.daytimeStamp = 0;
+                                    return;
+                                }
+                            }
+
+                            ArchipelagoConsole.LogMessage("OBTAINED " + Game.Data.Items.Get((int)ArchipelagoClient.alist.list[i].item.ItemId).itemName + " ITEM");
+                            ArchipelagoClient.alist.list[i].processed = true;
+                        }
+                        else
+                        {
+                            ArchipelagoConsole.LogMessage("INVENTORY FULL COUDNT PROCESS ITEM");
+                        }
+                    }
+                }
+
+            }
+
+            /*
             for (int i = 0; i < file.flags.Count; i++)
             {
                 int.TryParse(file.flags[i].flagName, out int flagint);
@@ -1491,11 +1691,12 @@ namespace HunniePop2ArchipelagoClient.Utils
                             }
 
                         }
-
+            
 
                     }
                 }
             }
+            */
         }
 
         /// <summary>

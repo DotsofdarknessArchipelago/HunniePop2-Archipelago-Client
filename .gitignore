@@ -361,12 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/HunniePop2ArchipelagoClient/Libs/Assembly-CSharp.dll
-/HunniePop2ArchipelagoClient/Libs/DOTween.dll
-/HunniePop2ArchipelagoClient/Libs/Unity.TextMeshPro.dll
-/HunniePop2ArchipelagoClient/Libs/UnityEngine.CoreModule.dll
-/HunniePop2ArchipelagoClient/Libs/UnityEngine.dll
-/HunniePop2ArchipelagoClient/Libs/UnityEngine.IMGUIModule.dll
-/HunniePop2ArchipelagoClient/Libs/UnityEngine.TextRenderingModule.dll
-/HunniePop2ArchipelagoClient/Libs/UnityEngine.UI.dll
 /HunniePop2ArchipelagoClient/Libs

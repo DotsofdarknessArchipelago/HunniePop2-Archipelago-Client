@@ -1,12 +1,18 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
+using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using HunniePop2ArchipelagoClient.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace HunniePop2ArchipelagoClient.Archipelago
 {
@@ -21,7 +27,8 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         public static ArchipelagoData ServerData = new();
         private static ArchipelagoSession session;
 
-        public static Queue<long> itemstoprocess = new Queue<long>();
+        public static Dictionary<long, ScoutedItemInfo> shopdict = null;
+        public static ArchipelageItemList alist = new ArchipelageItemList();
 
         /// <summary>
         /// call to connect to an Archipelago session. Connection info should already be set up on ServerData
@@ -33,7 +40,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
 
             try
             {
-                session = ArchipelagoSessionFactory.CreateSession(ServerData.Uri);
+                session = ArchipelagoSessionFactory.CreateSession(ServerData.Uri.Trim());
                 SetupSession();
             }
             catch (Exception e)
@@ -96,8 +103,38 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 ServerData.SetupSession(success.SlotData, session.RoomState.Seed);
                 Authenticated = true;
 
-                session.Locations.CompleteLocationChecksAsync(ServerData.CheckedLocations.ToArray());
+                buildshoplocations(Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_shop_items"]));
+
                 outText = $"Successfully connected to {ServerData.Uri} as {ServerData.SlotName}!";
+                alist.seed = session.RoomState.Seed;
+
+                if (File.Exists(Application.persistentDataPath + "/archdata"))
+                {
+                    using (StreamReader file = File.OpenText(Application.persistentDataPath + "/archdata"))
+                    {
+                        JsonSerializer serializer = new JsonSerializer();
+                        ArchipelageItemList savedlist = (ArchipelageItemList)serializer.Deserialize(file, typeof(ArchipelageItemList));
+                        if (session.RoomState.Seed == savedlist.seed)
+                        {
+                            ArchipelagoConsole.LogMessage("archdata file found restoring session");
+                            if (savedlist.list.Count >= alist.list.Count)
+                            {
+                                alist.merge(savedlist.list);
+                            }
+                            alist = savedlist;
+                        }
+                        else
+                        {
+                            ArchipelagoConsole.LogMessage("archdata file found but dosent match server seed creating new session");
+                        }
+                    }
+                }
+                else
+                {
+                    ArchipelagoConsole.LogMessage("archdata file not found creating new session");
+                }
+
+
 
                 ArchipelagoConsole.LogMessage(outText);
             }
@@ -140,11 +177,22 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         private void OnItemReceived(ReceivedItemsHelper helper)
         {
             var receivedItem = helper.DequeueItem();
-            itemstoprocess.Enqueue(receivedItem.ItemId);
-            
-
-            ArchipelagoConsole.LogMessage("ITEM RECIEVED: " + receivedItem.ItemName);
-            ArchipelagoConsole.LogMessage("TOTAL ITEMS TO BE PROCESSED: " +itemstoprocess.Count);
+            //itemstoprocess.Enqueue(receivedItem.ItemId);
+            alist.add(receivedItem);
+            /*
+            ArchipelagoConsole.LogMessage("------ITEM-RECEIVED--------");
+            ArchipelagoConsole.LogMessage("ItemID: " + receivedItem.ItemId.ToString());
+            ArchipelagoConsole.LogMessage("LocationID: " + receivedItem.LocationId.ToString());
+            ArchipelagoConsole.LogMessage("Player: " + receivedItem.Player.ToString());
+            ArchipelagoConsole.LogMessage("Flags: " + receivedItem.Flags.ToString());
+            ArchipelagoConsole.LogMessage("ItemName: " + receivedItem.ItemName);
+            ArchipelagoConsole.LogMessage("ItemDisplayName: " + receivedItem.ItemDisplayName);
+            ArchipelagoConsole.LogMessage("locationName: " + receivedItem.LocationName);
+            ArchipelagoConsole.LogMessage("LocationDisplayName: " + receivedItem.LocationDisplayName);
+            ArchipelagoConsole.LogMessage("ItemGame: " + receivedItem.ItemGame);
+            ArchipelagoConsole.LogMessage("LocationGame: " + receivedItem.LocationGame);
+            ArchipelagoConsole.LogMessage("-------------------");
+            */
             if (helper.Index < ServerData.Index) return;
 
             ServerData.Index++;
@@ -159,10 +207,41 @@ namespace HunniePop2ArchipelagoClient.Archipelago
             session.Locations.CompleteLocationChecks(loc);
         }
 
+        public static ScoutedItemInfo getshopitem(int loc)
+        {
+            if (!Authenticated) { return null; }
+            long key = 69420505 + loc;
+            if (shopdict.ContainsKey(key))
+            {
+                return shopdict[key];
+            }
+            return null;
+        }
+
+        public void buildshoplocations(int num)
+        {
+            long[] shopids = new long[num];
+            for (int i = 0; i < shopids.Length; i++) { shopids[i] = 69420506 + i; }
+
+
+            Task<Dictionary<long, ScoutedItemInfo>> scoutedInfoTask = Task.Run(async () => await session.Locations.ScoutLocationsAsync(shopids));
+            if (scoutedInfoTask.IsFaulted)
+            {
+                ArchipelagoConsole.LogMessage("ERROR:"+scoutedInfoTask.Exception.GetBaseException().Message);
+                return;
+            }
+            shopdict = scoutedInfoTask.Result;
+
+        }
+
         public static string seed()
         {
             return session.RoomState.Seed;
-            
+        }
+
+        public static string itemidtoname(long flag)
+        {
+            return session.Items.GetItemName(flag);
         }
 
         public static void complete()
