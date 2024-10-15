@@ -121,7 +121,10 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                             {
                                 alist.merge(savedlist.list);
                             }
-                            alist = savedlist;
+                            else
+                            {
+                                alist = savedlist;
+                            }
                         }
                         else
                         {
@@ -239,9 +242,30 @@ namespace HunniePop2ArchipelagoClient.Archipelago
             return session.RoomState.Seed;
         }
 
+        public static List<long> completeloc()
+        {
+            return session.Locations.AllLocationsChecked.ToList();
+        }
+
         public static string itemidtoname(long flag)
         {
             return session.Items.GetItemName(flag);
+        }
+
+        public static void resetlist()
+        {
+            ArchipelagoConsole.LogMessage("RESETING RECIEVED ITEMS");
+            ArchipelageItemList newlist = new ArchipelageItemList();
+            int i = 0;
+
+            foreach (ItemInfo item in session.Items.AllItemsReceived)
+            {
+                ArchipelagoConsole.LogMessage($"NAME:{item.ItemName} ID:{item.ItemId} RECIEVED");
+                newlist.add(item);
+                i++;
+            }
+            alist = newlist;
+            ArchipelagoConsole.LogMessage("ITEM RESET COMPLETE, RESET "+i.ToString()+" ITEMS");
         }
 
         public static void complete()

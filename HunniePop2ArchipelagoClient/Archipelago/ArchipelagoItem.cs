@@ -30,11 +30,16 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         {
             for (int i = 0; i < oldlist.Count; i++)
             {
-                if (oldlist[i].item == list[i].item)
+                for (int j = 0; j < list.Count; j++)
                 {
-                    list[i].processed = oldlist[i].processed;
-                    list[i].putinshop = oldlist[i].putinshop;
+                    if (oldlist[i].item == list[j].item)
+                    {
+                        list[j].processed = oldlist[i].processed;
+                        list[j].putinshop = oldlist[i].putinshop;
+                        break;
+                    }
                 }
+
             }
         }
 

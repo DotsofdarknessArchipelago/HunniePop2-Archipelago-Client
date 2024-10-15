@@ -71,13 +71,10 @@ namespace HunniePop2ArchipelagoClient.Utils
                     }
                     else
                     {
-
                         PlayerFile playerFile = Game.Persistence.playerData.files[3];
 
-                        //for (int k = 69420346; k < 69420421; k++)
-                        //{
-                        //    playerFile.SetFlagValue(k.ToString(), 0);
-                        //}
+                        Util.archflagprocess(playerFile);
+
 
                         Game.Persistence.Apply(3);
                         Game.Persistence.SaveGame();
@@ -441,14 +438,36 @@ namespace HunniePop2ArchipelagoClient.Utils
 
 
             }
-            if (input == "CONNECT")
+            if (input == "RESETITEMS")
             {
-                //ArchipelagoConsole.LogMessage("NEW GAME");
+                if (!ArchipelagoClient.Authenticated)
+                {
+                    if (File.Exists(Application.persistentDataPath + "/archdata"))
+                    {
+                        File.Delete(Application.persistentDataPath + "/archdata");
+                    }
+                }
+                else
+                {
+                    ArchipelagoClient.resetlist();
+                }
             }
 
-            if (input == "NEWGAME")
+            if (input == "DEBUGDATA")
             {
-                //ArchipelagoConsole.LogMessage("NEW GAME");
+                ArchipelagoConsole.LogMessage("-------DEBUG DATA-------");
+                ArchipelagoConsole.LogMessage("List size: " + ArchipelagoClient.alist.list.Count.ToString());
+                ArchipelagoConsole.LogMessage("------------------------");
+                for (int i = 0; i < ArchipelagoClient.alist.list.Count; i++)
+                {
+                    ArchipelagoConsole.LogMessage("#" + i.ToString());
+                    ArchipelagoConsole.LogMessage("ID:" + ArchipelagoClient.alist.list[i].item.ItemId.ToString());
+                    ArchipelagoConsole.LogMessage("NAME:" + ArchipelagoClient.alist.list[i].item.ItemName);
+                    ArchipelagoConsole.LogMessage("PROCESSED:" + ArchipelagoClient.alist.list[i].processed.ToString());
+                    ArchipelagoConsole.LogMessage("PUTINSHOP:" + ArchipelagoClient.alist.list[i].putinshop.ToString());
+                    ArchipelagoConsole.LogMessage("------------------------");
+                }
+                ArchipelagoConsole.LogMessage("-----END DEBUG DATA-----");
             }
         }
 
@@ -1242,7 +1261,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             for (int i=0; i<ArchipelagoClient.alist.list.Count; i++)
             {
                 if (ArchipelagoClient.alist.list[i].processed) { continue; }
-                //ArchipelagoConsole.LogMessage("PROCESSING ITEM ID: " + ArchipelagoClient.alist.list[i].item.ItemName);
+                ArchipelagoConsole.LogMessage("PROCESSING ITEM ID: " + ArchipelagoClient.alist.list[i].item.ItemId);
 
                 if (ArchipelagoClient.alist.list[i].item.ItemId > 69420000 && ArchipelagoClient.alist.list[i].item.ItemId < 69420025) 
                 {
@@ -1416,7 +1435,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                                 {
                                     playerFileInventorySlot.itemDefinition = Game.Data.Items.Get(Util.itemflagtoid((int)ArchipelagoClient.alist.list[i].item.ItemId));
                                     playerFileInventorySlot.daytimeStamp = 0;
-                                    return;
+                                    break;
                                 }
                             }
 
