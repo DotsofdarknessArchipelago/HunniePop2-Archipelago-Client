@@ -1439,7 +1439,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                                 }
                             }
 
-                            ArchipelagoConsole.LogMessage("OBTAINED " + Game.Data.Items.Get((int)ArchipelagoClient.alist.list[i].item.ItemId).itemName + " ITEM");
+                            ArchipelagoConsole.LogMessage("OBTAINED " + Game.Data.Items.Get(Util.itemflagtoid((int)ArchipelagoClient.alist.list[i].item.ItemId)).name + " ITEM");
                             ArchipelagoClient.alist.list[i].processed = true;
                         }
                         else
