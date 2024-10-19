@@ -417,11 +417,12 @@ namespace HunniePop2ArchipelagoClient.Utils
                     newlist.Add(Util.baggagestuff());
                     file.girls[i].girlDefinition.baggageItemDefs = newlist;
                 }
+
                 if (ArchipelagoClient.alist.hasitem(69420189 + ((id - 1) * 3)) && file.girls[i].girlDefinition.baggageItemDefs[0] != Game.Data.Items.Get(((id - 1) * 3) + 93))
                 {
                     file.girls[i].girlDefinition.baggageItemDefs[0] = Game.Data.Items.Get(((id - 1) * 3) + 93);
                 }
-                else if (file.girls[i].girlDefinition.baggageItemDefs[0] != Util.baggagestuff())
+                else if (file.girls[i].girlDefinition.baggageItemDefs[0] != Util.baggagestuff() && !ArchipelagoClient.alist.hasitem(69420189 + ((id - 1) * 3)))
                 {
                     file.girls[i].girlDefinition.baggageItemDefs[0] = Util.baggagestuff();
                 }
@@ -430,7 +431,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                 {
                     file.girls[i].girlDefinition.baggageItemDefs[1] = Game.Data.Items.Get(((id - 1) * 3) + 94);
                 }
-                else if (file.girls[i].girlDefinition.baggageItemDefs[1] != Util.baggagestuff())
+                else if (file.girls[i].girlDefinition.baggageItemDefs[1] != Util.baggagestuff() && !ArchipelagoClient.alist.hasitem(69420190 + ((id - 1) * 3)))
                 {
                     file.girls[i].girlDefinition.baggageItemDefs[1] = Util.baggagestuff();
                 }
@@ -439,7 +440,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                 {
                     file.girls[i].girlDefinition.baggageItemDefs[2] = Game.Data.Items.Get(((id - 1) * 3) + 95);
                 }
-                else if (file.girls[i].girlDefinition.baggageItemDefs[2] != Util.baggagestuff())
+                else if (file.girls[i].girlDefinition.baggageItemDefs[2] != Util.baggagestuff() && !ArchipelagoClient.alist.hasitem(69420191 + ((id - 1) * 3)))
                 {
                     file.girls[i].girlDefinition.baggageItemDefs[2] = Util.baggagestuff();
                 }
