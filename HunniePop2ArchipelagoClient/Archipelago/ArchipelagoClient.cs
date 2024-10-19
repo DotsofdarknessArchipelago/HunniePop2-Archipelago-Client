@@ -103,6 +103,13 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 ServerData.SetupSession(success.SlotData, session.RoomState.Seed);
                 Authenticated = true;
 
+                alist = new ArchipelageItemList();
+
+                foreach (ItemInfo item in session.Items.AllItemsReceived)
+                {
+                    alist.add(item);
+                }
+
                 buildshoplocations(Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_shop_items"]));
 
                 outText = $"Successfully connected to {ServerData.Uri} as {ServerData.SlotName}!";
@@ -114,7 +121,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                     {
                         JsonSerializer serializer = new JsonSerializer();
                         ArchipelageItemList savedlist = (ArchipelageItemList)serializer.Deserialize(file, typeof(ArchipelageItemList));
-                        if (session.RoomState.Seed == savedlist.seed)
+                        if (alist.seed == savedlist.seed)
                         {
                             ArchipelagoConsole.LogMessage("archdata file found restoring session");
                             if (savedlist.list.Count >= alist.list.Count)
@@ -129,6 +136,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                         else
                         {
                             ArchipelagoConsole.LogMessage("archdata file found but dosent match server seed creating new session");
+                            ArchipelagoConsole.LogMessage(session.RoomState.Seed + ": does not equal :" + savedlist.seed);
                         }
                     }
                 }
