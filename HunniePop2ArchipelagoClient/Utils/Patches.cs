@@ -406,6 +406,45 @@ namespace HunniePop2ArchipelagoClient.Utils
                 ArchipelagoClient.complete();
             }
 
+            for (int i = 0; i < file.girls.Count; i++)
+            {
+                int id = file.girls[i].girlDefinition.id;
+                if (file.girls[i].girlDefinition.baggageItemDefs.Count != 3)
+                {
+                    List<ItemDefinition> newlist = new List<ItemDefinition>();
+                    newlist.Add(Util.baggagestuff());
+                    newlist.Add(Util.baggagestuff());
+                    newlist.Add(Util.baggagestuff());
+                    file.girls[i].girlDefinition.baggageItemDefs = newlist;
+                }
+                if (ArchipelagoClient.alist.hasitem(69420189 + ((id - 1) * 3)) && file.girls[i].girlDefinition.baggageItemDefs[0] != Game.Data.Items.Get(((id - 1) * 3) + 93))
+                {
+                    file.girls[i].girlDefinition.baggageItemDefs[0] = Game.Data.Items.Get(((id - 1) * 3) + 93);
+                }
+                else if (file.girls[i].girlDefinition.baggageItemDefs[0] != Util.baggagestuff())
+                {
+                    file.girls[i].girlDefinition.baggageItemDefs[0] = Util.baggagestuff();
+                }
+
+                if (ArchipelagoClient.alist.hasitem(69420190 + ((id - 1) * 3)) && file.girls[i].girlDefinition.baggageItemDefs[1] != Game.Data.Items.Get(((id - 1) * 3) + 94))
+                {
+                    file.girls[i].girlDefinition.baggageItemDefs[1] = Game.Data.Items.Get(((id - 1) * 3) + 94);
+                }
+                else if (file.girls[i].girlDefinition.baggageItemDefs[1] != Util.baggagestuff())
+                {
+                    file.girls[i].girlDefinition.baggageItemDefs[1] = Util.baggagestuff();
+                }
+
+                if (ArchipelagoClient.alist.hasitem(69420191 + ((id - 1) * 3)) && file.girls[i].girlDefinition.baggageItemDefs[2] != Game.Data.Items.Get(((id - 1) * 3) + 95))
+                {
+                    file.girls[i].girlDefinition.baggageItemDefs[2] = Game.Data.Items.Get(((id - 1) * 3) + 95);
+                }
+                else if (file.girls[i].girlDefinition.baggageItemDefs[2] != Util.baggagestuff())
+                {
+                    file.girls[i].girlDefinition.baggageItemDefs[2] = Util.baggagestuff();
+                }
+            }
+
             if (ArchipelagoClient.alist.needprocessing())
             {
                 Util.archflagprocess(file);
@@ -2034,6 +2073,12 @@ namespace HunniePop2ArchipelagoClient.Utils
             else if (flag == 69420420) { return 283; }
 
             return 0;
+        }
+
+        public static int bagflagtoid(int flag)
+        {
+
+            return -1;
         }
 
     }
