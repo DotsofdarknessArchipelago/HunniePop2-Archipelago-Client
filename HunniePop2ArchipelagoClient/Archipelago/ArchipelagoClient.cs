@@ -124,14 +124,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                         if (alist.seed == savedlist.seed)
                         {
                             ArchipelagoConsole.LogMessage("archdata file found restoring session");
-                            if (savedlist.list.Count >= alist.list.Count)
-                            {
-                                alist.merge(savedlist.list);
-                            }
-                            else
-                            {
-                                alist = savedlist;
-                            }
+                            alist.merge(savedlist.list);
                         }
                         else
                         {
@@ -144,8 +137,6 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 {
                     ArchipelagoConsole.LogMessage("archdata file not found creating new session");
                 }
-
-
 
                 ArchipelagoConsole.LogMessage(outText);
             }
@@ -161,6 +152,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 Disconnect();
             }
 
+            alist.removedupes();
             ArchipelagoConsole.LogMessage(outText);
             attemptingConnection = false;
         }
@@ -253,6 +245,11 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         public static List<long> completeloc()
         {
             return session.Locations.AllLocationsChecked.ToList();
+        }
+
+        public static bool locdone(long flag)
+        {
+            return session.Locations.AllLocationsChecked.Contains(flag);
         }
 
         public static string itemidtoname(long flag)
