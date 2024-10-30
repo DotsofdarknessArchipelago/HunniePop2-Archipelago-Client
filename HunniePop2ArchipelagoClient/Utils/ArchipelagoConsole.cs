@@ -1,7 +1,11 @@
-﻿using BepInEx;
+﻿using Archipelago.MultiClient.Net.MessageLog.Messages;
+using BepInEx;
 using HunniePop2ArchipelagoClient.Archipelago;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using UnityEngine;
 
 namespace HunniePop2ArchipelagoClient.Utils
@@ -9,7 +13,7 @@ namespace HunniePop2ArchipelagoClient.Utils
     // shamelessly stolen from oc2-modding https://github.com/toasterparty/oc2-modding/blob/main/OC2Modding/GameLog.cs
     public static class ArchipelagoConsole
     {
-        public static bool Hidden = false;
+        public static bool Hidden = true;
 
         private static List<string> logLines = new();
         private static Vector2 scrollView;
@@ -28,13 +32,130 @@ namespace HunniePop2ArchipelagoClient.Utils
         private static Rect CommandTextRect;
         private static Rect SendCommandButton;
 
+        public static bool debug = false;
+        private static Texture2D SolidBoxTex;
+
         public static void Awake()
         {
             UpdateWindow();
         }
 
+        public static void toggle()
+        {
+            Hidden = !Hidden;
+            UpdateWindow();
+        }
+
+        public static void LogArchMessage(LogMessage msg)
+        {
+            if (msg.ToString().IsNullOrWhiteSpace()) return;
+
+            switch (msg)
+            {
+                case HintItemSendLogMessage hintmsg:
+                    if (hintmsg.IsRelatedToActivePlayer)
+                    {
+
+                        if (hintmsg.Parts.Length == 1)
+                        {
+                            LogMessage(hintmsg.Parts[0].Text);
+                            break;
+                        }
+
+                        var builder = new StringBuilder();
+                        foreach (var part in hintmsg.Parts)
+                        {
+                            if ((int)part.Type == 1)//player part type
+                            {
+                                builder.Append($"<color=#{part.Color.R:x2}{part.Color.G:x2}{part.Color.B:x2}ff>");
+                                builder.Append(part.Text);
+                                builder.Append("</color>");
+                            }
+                            else if ((int)part.Type == 2)//item part type
+                            {
+                                builder.Append($"<color=#{part.Color.R:x2}{part.Color.G:x2}{part.Color.B:x2}ff>");
+                                builder.Append(part.Text);
+                                builder.Append("</color>");
+                            }
+                            else if ((int)part.Type == 3)//location part type
+                            {
+                                builder.Append($"<color=#{part.Color.R:x2}{part.Color.G:x2}{part.Color.B:x2}ff>");
+                                builder.Append(part.Text);
+                                builder.Append("</color>");
+                            }
+                            else
+                            {
+                                builder.Append(part.Text);
+                            }
+                        }
+
+                        LogMessage(builder.ToString());
+                    }
+                    break;
+
+                case ItemSendLogMessage itemmsg:
+                    if (itemmsg.IsRelatedToActivePlayer)
+                    {
+
+                        if (itemmsg.Parts.Length == 1)
+                        {
+                            LogMessage(itemmsg.Parts[0].Text);
+                            break;
+                        }
+
+                        var builder = new StringBuilder();
+                        foreach (var part in itemmsg.Parts)
+                        {
+                            if ((int)part.Type == 1)//player part type
+                            {
+                                builder.Append($"<color=#{part.Color.R:x2}{part.Color.G:x2}{part.Color.B:x2}ff>");
+                                builder.Append(part.Text);
+                                builder.Append("</color>");
+                            }
+                            else if ((int)part.Type == 2)//item part type
+                            {
+                                builder.Append($"<color=#{part.Color.R:x2}{part.Color.G:x2}{part.Color.B:x2}ff>");
+                                builder.Append(part.Text);
+                                builder.Append("</color>");
+                            }
+                            else if ((int)part.Type == 3)//location part type
+                            {
+                                builder.Append($"<color=#{part.Color.R:x2}{part.Color.G:x2}{part.Color.B:x2}ff>");
+                                builder.Append(part.Text);
+                                builder.Append("</color>");
+                            }
+                            else
+                            {
+                                builder.Append(part.Text);
+                            }
+                        }
+
+                        LogMessage(builder.ToString());
+                    }
+                    break;
+
+
+            }
+
+        }
+
         public static void LogMessage(string message)
         {
+            if (message.IsNullOrWhiteSpace()) return;
+
+            if (logLines.Count == MaxLogLines)
+            {
+                logLines.RemoveAt(0);
+            }
+            logLines.Add(message);
+            Plugin.BepinLogger.LogMessage(message);
+            lastUpdateTime = Time.time;
+            UpdateWindow();
+        }
+
+        public static void debugLogMessage(string message)
+        {
+            if (!debug) { return; }
             if (message.IsNullOrWhiteSpace()) return;
 
             if (logLines.Count == MaxLogLines)
@@ -53,6 +174,7 @@ namespace HunniePop2ArchipelagoClient.Utils
 
             if (!Hidden || Time.time - lastUpdateTime < HideTimeout)
             {
+                DrawSolidBox(window);
                 scrollView = GUI.BeginScrollView(window, scrollView, scroll);
                 GUI.Box(text, "");
                 GUI.Box(text, scrollText, textStyle);
@@ -122,6 +244,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             textStyle.alignment = TextAnchor.LowerLeft;
             textStyle.fontSize = Hidden ? (int)(Screen.height * 0.0165f) : (int)(Screen.height * 0.0185f);
             textStyle.normal.textColor = Color.white;
+            textStyle.richText = true;
             textStyle.wordWrap = !Hidden;
 
             var xPadding = (int)(Screen.width * 0.01f);
@@ -148,6 +271,20 @@ namespace HunniePop2ArchipelagoClient.Utils
             width = (int)(Screen.width * 0.035f);
             yPos += (int)(Screen.height * 0.03f);
             SendCommandButton = new Rect(xPos, yPos, width, height);
+        }
+
+        public static void DrawSolidBox(Rect boxRect)
+        {
+            if (SolidBoxTex == null)
+            {
+                var windowBackground = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+                windowBackground.SetPixel(0, 0, new Color(0, 0, 0));
+                windowBackground.Apply();
+                SolidBoxTex = windowBackground;
+            }
+
+            // It's necessary to make a new GUIStyle here or the texture doesn't show up
+            GUI.Box(new Rect(boxRect.x, boxRect.y, boxRect.width, boxRect.height), "", new GUIStyle { normal = new GUIStyleState { background = SolidBoxTex } });
         }
     }
 }

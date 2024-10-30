@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using HunniePop2ArchipelagoClient.Archipelago;
 using HunniePop2ArchipelagoClient.Utils;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace HunniePop2ArchipelagoClient
 {
@@ -11,12 +12,14 @@ namespace HunniePop2ArchipelagoClient
     {
         public const string PluginGUID = "com.dots.hunniepop2";
         public const string PluginName = "HunniePop2Archielago";
-        public const string PluginVersion = "0.6.6";
+        public const string PluginVersion = "0.7.0";
 
         public const string ModDisplayInfo = $"{PluginName} v{PluginVersion}";
         private const string APDisplayInfo = $"Client V({PluginVersion})";
         public static ManualLogSource BepinLogger;
         public static ArchipelagoClient ArchipelagoClient;
+
+        private static Texture2D SolidBoxTex;
 
         public bool enablecon = false;
         public bool startmenu = false;
@@ -39,7 +42,7 @@ namespace HunniePop2ArchipelagoClient
         {
             if (Input.GetKeyDown(KeyCode.F8))
             {
-                enablecon = !enablecon;
+                ArchipelagoConsole.toggle();
             }
             if (Input.GetMouseButtonDown(0))
             {
@@ -51,26 +54,44 @@ namespace HunniePop2ArchipelagoClient
         {
             // show the mod is currently loaded in the corner
             //GUI.Label(new Rect(16, 16, 300, 20), ModDisplayInfo);
-            GUI.depth = 0;
-            if (enablecon)
+            if (true)
             {
                 ArchipelagoConsole.OnGUI();
             }
             if (ArchipelagoClient.Authenticated)
             {
-                GUI.Window(69, new Rect(Screen.width - 300, 10, 300, 50), window, "Archipelago");
+                DrawSolidBox(new Rect(Screen.width - 300, 10, 300, 50));
+                GUI.color = new Color(0, 0, 0, 0);
+                GUI.Window(69, new Rect(Screen.width - 300, 10, 300, 50), window, "");
             }
             else
             {
-                GUI.Window(69, new Rect(Screen.width - 300, 10, 300, 130), window, "Archipelago");
+                DrawSolidBox(new Rect(Screen.width - 300, 10, 300, 130));
+                GUI.color = new Color(0, 0, 0, 0);
+                GUI.Window(69, new Rect(Screen.width - 300, 10, 300, 130), window, "");
             }
             
             // this is a good place to create and add a bunch of debug buttons
         }
 
+        public static void DrawSolidBox(Rect boxRect)
+        {
+            if (SolidBoxTex == null)
+            {
+                var windowBackground = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+                windowBackground.SetPixel(0, 0, new Color(0, 0, 0));
+                windowBackground.Apply();
+                SolidBoxTex = windowBackground;
+            }
+
+            // It's necessary to make a new GUIStyle here or the texture doesn't show up
+            GUI.Box(boxRect, "", new GUIStyle { normal = new GUIStyleState { background = SolidBoxTex } });
+        }
+
         public void window(int id)
         {
-            GUI.backgroundColor = Color.black;
+
+            GUI.depth = 0;
             string statusMessage;
             // show the Archipelago Version and whether we're connected or not
             if (ArchipelagoClient.Authenticated)
@@ -106,6 +127,7 @@ namespace HunniePop2ArchipelagoClient
                     ArchipelagoClient.ServerData.Password);
 
                 // requires that the player at least puts *something* in the slot name
+                GUI.backgroundColor = Color.white;
                 if (GUI.Button(new Rect(100, 105, 100, 20), "Connect") &&
                     !ArchipelagoClient.ServerData.SlotName.IsNullOrWhiteSpace())
                 {

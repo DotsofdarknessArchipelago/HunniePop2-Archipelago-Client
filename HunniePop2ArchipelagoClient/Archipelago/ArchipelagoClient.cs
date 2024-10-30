@@ -1,6 +1,7 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
+using Archipelago.MultiClient.Net.MessageLog.Messages;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using HunniePop2ArchipelagoClient.Utils;
@@ -56,7 +57,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         /// </summary>
         private void SetupSession()
         {
-            session.MessageLog.OnMessageReceived += message => ArchipelagoConsole.LogMessage(message.ToString());
+            session.MessageLog.OnMessageReceived += message => ArchipelagoConsole.LogArchMessage(message);
             session.Items.ItemReceived += OnItemReceived;
             session.Socket.ErrorReceived += OnSessionErrorReceived;
             session.Socket.SocketClosed += OnSessionSocketClosed;
@@ -124,7 +125,11 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                         if (alist.seed == savedlist.seed)
                         {
                             ArchipelagoConsole.LogMessage("archdata file found restoring session");
-                            alist.merge(savedlist.list);
+                            if (alist.merge(savedlist.list))
+                            {
+                                ArchipelagoConsole.LogMessage("ERROR LOADING SAVED ITEM LIST RESETING ITEM LIST");
+                                resetlist();
+                            }
                         }
                         else
                         {
@@ -152,7 +157,6 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 Disconnect();
             }
 
-            alist.removedupes();
             ArchipelagoConsole.LogMessage(outText);
             attemptingConnection = false;
         }
