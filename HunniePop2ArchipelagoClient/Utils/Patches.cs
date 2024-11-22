@@ -485,6 +485,8 @@ namespace HunniePop2ArchipelagoClient.Utils
                 serializer.Serialize(archfile, ArchipelagoClient.alist);
             }
 
+            file.finderSlots = Util.genfinder(file);
+
         }
 
         /// <summary>
@@ -1213,32 +1215,44 @@ namespace HunniePop2ArchipelagoClient.Utils
 
             int initalpaircount = pair.Count;
 
-            List<int> areas = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
+            List<LocationDefinition> areas = new List<LocationDefinition>();
+            for (int j = 1; j < 9; j++)
+            {
+                LocationDefinition a = Game.Data.Locations.Get(j);
+                if (file.locationDefinition != a)
+                {
+                    areas.Add(a);
+                }
+            }
+
             List<PlayerFileFinderSlot> finder = new List<PlayerFileFinderSlot>();
 
             for (int i = 0; i < 8; i++)
             {
-                if (pair.Count == 0) { break; }
+                if (pair.Count == 0 || areas.Count == 0) { break; }
                 int p;
-                if (pair.Count == 1) { p = 1; } else { p = UnityEngine.Random.Range(0, pair.Count - 1); }
-                int a = UnityEngine.Random.Range(0, areas.Count - 1);
+                if (pair.Count == 1) { p = 0; } else { p = UnityEngine.Random.Range(0, pair.Count); }
+                int a = UnityEngine.Random.Range(0, areas.Count);
 
                 p = Math.Min(p, pair.Count - 1);
                 a = Math.Min(a, areas.Count - 1);
 
                 PlayerFileFinderSlot findSlot = new PlayerFileFinderSlot();
-                findSlot.locationDefinition = Game.Data.Locations.Get(areas[a]);
+                findSlot.locationDefinition = areas[a];
                 findSlot.girlPairDefinition = pair[p];
-                findSlot.sidesFlipped = false;
+                if ((UnityEngine.Random.Range(0, 100) % 2) == 0)
+                {
+                    findSlot.sidesFlipped = false;
+                }
+                else
+                {
+                    findSlot.sidesFlipped = true;
+                }
 
                 finder.Add(findSlot);
 
                 areas.RemoveAt(a);
                 pair.RemoveAt(p);
-
-                if (i < 2) { continue; }
-
-                if (UnityEngine.Random.Range(0, 48) <= initalpaircount) { break; }
 
             }
 
