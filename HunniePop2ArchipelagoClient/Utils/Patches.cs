@@ -434,6 +434,7 @@ namespace HunniePop2ArchipelagoClient.Utils
                 ArchipelagoClient.complete();
             }
 
+
             for (int i = 0; i < file.girls.Count; i++)
             {
                 int id = file.girls[i].girlDefinition.id;
@@ -486,6 +487,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             }
 
             file.finderSlots = Util.genfinder(file);
+
 
         }
 
@@ -916,6 +918,12 @@ namespace HunniePop2ArchipelagoClient.Utils
         [HarmonyPostfix]
         public static void test1(ref PuzzleStatus ____puzzleStatus)
         {
+            if (Convert.ToBoolean(ArchipelagoClient.ServerData.slotData["outfit_date_complete"]))
+            {
+                ArchipelagoConsole.LogMessage("DATE NOT SUCCESSFUL OUTFIT LOCATIONS WILL NOT BE SENT PLZ TRY AGAIN");
+                return;
+            }
+
             //ArchipelagoConsole.LogMessage("hi");
             if (Game.Persistence.playerFile.GetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString())) == -1)
             {
@@ -935,6 +943,12 @@ namespace HunniePop2ArchipelagoClient.Utils
         [HarmonyPostfix]
         public static void test2(ref PuzzleStatus ____puzzleStatus)
         {
+            if (Convert.ToBoolean(ArchipelagoClient.ServerData.slotData["outfit_date_complete"]))
+            {
+                ArchipelagoConsole.LogMessage("DATE NOT SUCCESSFUL OUTFIT LOCATIONS WILL NOT BE SENT PLZ TRY AGAIN");
+                return;
+            }
+
             if (Game.Persistence.playerFile.GetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString())) == -1)
             {
                 Game.Persistence.playerFile.SetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString()), 1);
@@ -1014,7 +1028,7 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 if (____talkStepIndex == 0)
                 {
-                    List<QuestionDefinition> pool = new List<QuestionDefinition>();
+                    __instance.questionPool.Clear();
                     List<QuestionDefinition> badpool = new List<QuestionDefinition>();
                     List<QuestionDefinition> goodpool = new List<QuestionDefinition>();
 
@@ -1022,11 +1036,13 @@ namespace HunniePop2ArchipelagoClient.Utils
                     {
                         if (Game.Persistence.playerFile.GetFlagValue("question:" + ____targetDoll.girlDefinition.id + ":" + i+1) != 1)
                         {
-                            goodpool.Add(Game.Session.Talk.favQuestionDefinitions[i]);
+                            goodpool.Add(__instance.favQuestionDefinitions[i]);
+                            //ArchipelagoConsole.LogMessage(__instance.favQuestionDefinitions[i].questionName + " ADDED TO GOOD POOL");
                         }
                         else
                         {
-                            badpool.Add(Game.Session.Talk.favQuestionDefinitions[i]);
+                            badpool.Add(__instance.favQuestionDefinitions[i]);
+                            //ArchipelagoConsole.LogMessage(__instance.favQuestionDefinitions[i].questionName + " ADDED TO BAD POOL");
                         }
                     }
 
@@ -1035,18 +1051,22 @@ namespace HunniePop2ArchipelagoClient.Utils
                         if (goodpool.Count > 0)
                         {
                             int index = UnityEngine.Random.Range(0, goodpool.Count);
-                            pool.Add(goodpool[index]);
+                            __instance.questionPool.Add(goodpool[index]);
+                            //ArchipelagoConsole.LogMessage(goodpool[index].name + " FROM GOOD POOL ADDED TO END POOL");
                             goodpool.RemoveAt(index);
                         }
                         else
                         {
 
                             int index = UnityEngine.Random.Range(0, badpool.Count);
-                            pool.Add(badpool[index]);
+                            __instance.questionPool.Add(badpool[index]);
+                            //ArchipelagoConsole.LogMessage(goodpool[index].name + " FROM BAD POOL ADDED TO END POOL");
                             badpool.RemoveAt(index);
                         }
                     }
-                    ____questionPool = pool;
+
+
+
                 }
             }
             return true;
@@ -1067,6 +1087,32 @@ namespace HunniePop2ArchipelagoClient.Utils
             return false;
         }
 
+
+        [HarmonyPatch(typeof(HubManager), "HubStep")]
+        [HarmonyPrefix]
+        public static void winggiving(HubManager __instance)
+        {
+            if (__instance.hubStepType == HubStepType.WINGS)
+            {
+                if (Game.Persistence.playerFile.completedGirlPairs.Count >= 24) { return; }
+                if (Game.Persistence.playerFile.completedGirlPairs.Count >= Convert.ToInt32(ArchipelagoClient.ServerData.slotData["boss_wing_requirement"]))
+                {
+                    ArchipelagoConsole.LogMessage("WING THRESHOLD REACHED GIVING REST OF WINGS TO ACCESS BOSS FIGHT");
+                    for (int j = 1; j < 25; j++)
+                    {
+                        if (!Game.Persistence.playerFile.completedGirlPairs.Contains(Game.Data.GirlPairs.Get(j)))
+                        {
+                            Game.Persistence.playerFile.completedGirlPairs.Add(Game.Data.GirlPairs.Get(j));
+                            Game.Persistence.SaveGame();
+                        }
+                    }
+                }
+                else
+                {
+                    ArchipelagoConsole.LogMessage("WING THRESHOLD OF "+ Convert.ToInt32(ArchipelagoClient.ServerData.slotData["boss_wing_requirement"]) + " NOT REACHED YET");
+                }
+            }
+        }
 
         /// IL CODE
 
@@ -1126,35 +1172,27 @@ namespace HunniePop2ArchipelagoClient.Utils
         [HarmonyILManipulator]
         public static void questionil(ILContext ctx, MethodBase orig)
         {
-            int s = 0;
-            int r = 0;
-
             for (int i = 0; i < ctx.Instrs.Count; i++)
             {
-                if (s == 3)
+                //Plugin.BepinLogger.LogMessage(ctx.Instrs[i].OpCode.ToString());
+                if (i<20)
                 {
-                    if (r == 2)
-                    {
-                        if (ctx.Instrs[i].OpCode == OpCodes.Newobj)
-                        {
-                            break;
-                        }
-                        ctx.Instrs[i].OpCode = OpCodes.Nop;
-                        ctx.Instrs[i].Operand = null;
-                    }
-                    else
-                    {
-                        if (ctx.Instrs[i].OpCode == OpCodes.Ret)
-                        {
-                            r++;
-                        }
-                    }
+                    continue; 
                 }
-                else
+                if (ctx.Instrs[i].OpCode == OpCodes.Ldarg_0 
+                    && ctx.Instrs[i - 1].OpCode == OpCodes.Br 
+                    && ctx.Instrs[i - 2].OpCode == OpCodes.Callvirt 
+                    && ctx.Instrs[i - 3].OpCode == OpCodes.Newobj 
+                    && ctx.Instrs[i - 4].OpCode == OpCodes.Ldftn 
+                    && ctx.Instrs[i - 5].OpCode == OpCodes.Ldarg_0 
+                    && ctx.Instrs[i - 6].OpCode == OpCodes.Ldfld 
+                    && ctx.Instrs[i - 7].OpCode == OpCodes.Ldarg_0 
+                    && ctx.Instrs[i - 8].OpCode == OpCodes.Callvirt 
+                    && ctx.Instrs[i - 9].OpCode == OpCodes.Ldc_I4_1)
                 {
-                    if (ctx.Instrs[i].OpCode == OpCodes.Switch) 
+                    for (int j = 0; j < 103; j++)
                     {
-                        s++;
+                        ctx.Instrs[i+j].OpCode = OpCodes.Nop;
                     }
                 }
             }
