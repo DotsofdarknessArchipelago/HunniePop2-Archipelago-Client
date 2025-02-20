@@ -12,7 +12,7 @@ namespace HunniePop2ArchipelagoClient
     {
         public const string PluginGUID = "com.dots.hunniepop2";
         public const string PluginName = "HunniePop2Archielago";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "1.1.1";
 
         public const string ModDisplayInfo = $"{PluginName} v{PluginVersion}";
         private const string APDisplayInfo = $"Client V({PluginVersion})";
@@ -64,9 +64,9 @@ namespace HunniePop2ArchipelagoClient
             }
             else
             {
-                DrawSolidBox(new Rect(Screen.width - 300, 10, 300, 130));
+                DrawSolidBox(new Rect(Screen.width - 300-90, 10, 300, 130));
                 GUI.color = new Color(0, 0, 0, 0);
-                GUI.Window(69, new Rect(Screen.width - 300, 10, 300, 130), window, "");
+                GUI.Window(69, new Rect(Screen.width - 300-90, 10, 300, 130), window, "");
             }
             
             // this is a good place to create and add a bunch of debug buttons

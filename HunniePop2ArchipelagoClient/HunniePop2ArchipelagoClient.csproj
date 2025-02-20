@@ -34,7 +34,7 @@
 	</Target>
 
 	<ItemGroup>
-		<PackageReference Include="Archipelago.MultiClient.Net" Version="6.3.0" />
+		<PackageReference Include="Archipelago.MultiClient.Net" Version="6.5.0" />
 		<PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
 		<PackageReference Include="BepInEx.Core" Version="5.4.21" />
 		<PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />

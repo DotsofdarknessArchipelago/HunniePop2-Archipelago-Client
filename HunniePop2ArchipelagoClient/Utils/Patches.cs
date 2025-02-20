@@ -1028,21 +1028,25 @@ namespace HunniePop2ArchipelagoClient.Utils
             {
                 if (____talkStepIndex == 0)
                 {
-                    __instance.questionPool.Clear();
+                    ____questionPool.Clear();
+
+
                     List<QuestionDefinition> badpool = new List<QuestionDefinition>();
                     List<QuestionDefinition> goodpool = new List<QuestionDefinition>();
 
-                    for (int i = 0; i < 20; i++)
+                    List<QuestionDefinition> questionlist = Game.Data.Questions.GetAll();
+
+                    foreach (QuestionDefinition question in questionlist)
                     {
-                        if (Game.Persistence.playerFile.GetFlagValue("question:" + ____targetDoll.girlDefinition.id + ":" + i+1) != 1)
+                        if (Game.Persistence.playerFile.GetFlagValue("question:" + ____targetDoll.girlDefinition.id + ":" + question.id) != 1)
                         {
-                            goodpool.Add(__instance.favQuestionDefinitions[i]);
-                            //ArchipelagoConsole.LogMessage(__instance.favQuestionDefinitions[i].questionName + " ADDED TO GOOD POOL");
+                            //ArchipelagoConsole.LogMessage(question.name + " ADDED TO GOOD POOL");
+                            goodpool.Add(question);
                         }
                         else
                         {
-                            badpool.Add(__instance.favQuestionDefinitions[i]);
-                            //ArchipelagoConsole.LogMessage(__instance.favQuestionDefinitions[i].questionName + " ADDED TO BAD POOL");
+                            //ArchipelagoConsole.LogMessage(question.name + " ADDED TO BAD POOL");
+                            badpool.Add(question);
                         }
                     }
 
@@ -1050,22 +1054,24 @@ namespace HunniePop2ArchipelagoClient.Utils
                     {
                         if (goodpool.Count > 0)
                         {
+                            //ArchipelagoConsole.LogMessage("ADDING GOOD POOL");
                             int index = UnityEngine.Random.Range(0, goodpool.Count);
-                            __instance.questionPool.Add(goodpool[index]);
+                            ____questionPool.Add(goodpool[index]);
                             //ArchipelagoConsole.LogMessage(goodpool[index].name + " FROM GOOD POOL ADDED TO END POOL");
                             goodpool.RemoveAt(index);
                         }
                         else
                         {
-
+                            //ArchipelagoConsole.LogMessage("ADDING BAD POOL");
                             int index = UnityEngine.Random.Range(0, badpool.Count);
-                            __instance.questionPool.Add(badpool[index]);
-                            //ArchipelagoConsole.LogMessage(goodpool[index].name + " FROM BAD POOL ADDED TO END POOL");
+                            ____questionPool.Add(badpool[index]);
+                            //ArchipelagoConsole.LogMessage(badpool[index].name + " FROM BAD POOL ADDED TO END POOL");
                             badpool.RemoveAt(index);
                         }
                     }
 
 
+                    //ArchipelagoConsole.LogMessage($"QUESTIONLIST: 1-{____questionPool[0].name} | 1-{____questionPool[1].name} | 1-{____questionPool[2].name}");
 
                 }
             }
