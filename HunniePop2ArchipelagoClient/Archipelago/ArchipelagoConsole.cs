@@ -1,14 +1,11 @@
 ﻿using Archipelago.MultiClient.Net.MessageLog.Messages;
 using BepInEx;
-using HunniePop2ArchipelagoClient.Archipelago;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-namespace HunniePop2ArchipelagoClient.Utils
+namespace HunniePop2ArchipelagoClient.Archipelago
 {
     // shamelessly stolen from oc2-modding https://github.com/toasterparty/oc2-modding/blob/main/OC2Modding/GameLog.cs
     public static class ArchipelagoConsole

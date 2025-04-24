@@ -1,12 +1,5 @@
-﻿using Archipelago.MultiClient.Net.DataPackage;
-using Archipelago.MultiClient.Net.Models;
-using HunniePop2ArchipelagoClient.Utils;
-using Newtonsoft.Json;
-using System;
+﻿using Archipelago.MultiClient.Net.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Unity.Collections.LowLevel.Unsafe;
 
 namespace HunniePop2ArchipelagoClient.Archipelago
 {

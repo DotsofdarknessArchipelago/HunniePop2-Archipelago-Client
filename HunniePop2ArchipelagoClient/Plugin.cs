@@ -1,9 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
+using HarmonyLib;
 using HunniePop2ArchipelagoClient.Archipelago;
-using HunniePop2ArchipelagoClient.Utils;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace HunniePop2ArchipelagoClient
 {
@@ -31,9 +30,10 @@ namespace HunniePop2ArchipelagoClient
             // Plugin startup logic
             BepinLogger = Logger;
             ArchipelagoClient = new ArchipelagoClient();
-            Patches.patch(ArchipelagoClient);
-            ArchipelagoConsole.Awake();
 
+            new Harmony(PluginGUID).PatchAll();
+
+            ArchipelagoConsole.Awake();
             ArchipelagoConsole.LogMessage($"{ModDisplayInfo} loaded!");
 
         }
