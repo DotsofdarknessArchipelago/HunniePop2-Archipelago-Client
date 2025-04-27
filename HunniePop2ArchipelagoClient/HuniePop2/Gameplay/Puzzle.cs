@@ -70,10 +70,10 @@ namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
         /// </summary>
         [HarmonyPatch(typeof(CutsceneStepSpecialPostRewards), "Start")]
         [HarmonyPostfix]
-        public static void test1(ref PuzzleStatus ____puzzleStatus)
+        public static void test1(ref PuzzleStatus ____puzzleStatus, ref bool ____puzzleFailure)
         {
             //check to see if we have outfit locations in logic
-            if (Convert.ToBoolean(ArchipelagoClient.ServerData.slotData["outfit_date_complete"]))
+            if (Convert.ToBoolean(ArchipelagoClient.ServerData.slotData["outfit_date_complete"]) && ____puzzleFailure)
             {
                 ArchipelagoConsole.LogMessage("DATE NOT SUCCESSFUL OUTFIT LOCATIONS WILL NOT BE SENT PLZ TRY AGAIN");
                 return;
@@ -99,38 +99,38 @@ namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
         }
 
 
-        /// <summary>
-        /// after the puzzle game is done check to see if outfit locations are done
-        /// duplicated just in case the other isnt triggered
-        /// </summary>
-        [HarmonyPatch(typeof(CutsceneStepSpecialRoundClear), "Start")]
-        [HarmonyPostfix]
-        public static void test2(ref PuzzleStatus ____puzzleStatus)
-        {
-            //check to see if we have outfit locations in logic
-            if (Convert.ToBoolean(ArchipelagoClient.ServerData.slotData["outfit_date_complete"]))
-            {
-                ArchipelagoConsole.LogMessage("DATE NOT SUCCESSFUL OUTFIT LOCATIONS WILL NOT BE SENT PLZ TRY AGAIN");
-                return;
-            }
-
-            //check left girls outfit to see if location is not already checked otherwise send location
-            if (Game.Persistence.playerFile.GetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString())) == -1)
-            {
-                //set flag
-                Game.Persistence.playerFile.SetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString()), 1);
-                //send location
-                ArchipelagoClient.sendloc(69420385 + ((____puzzleStatus.girlStatusLeft.girlDefinition.id - 1) * 10) + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex);
-            }
-
-            //check right girls outfit to see if location is not already checked otherwise send location
-            if (Game.Persistence.playerFile.GetFlagValue((____puzzleStatus.girlStatusRight.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusRight.girlDefinition).currentOutfitIndex.ToString())) == -1)
-            {
-                //set flag
-                Game.Persistence.playerFile.SetFlagValue((____puzzleStatus.girlStatusRight.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusRight.girlDefinition).currentOutfitIndex.ToString()), 1);
-                //send location
-                ArchipelagoClient.sendloc(69420385 + ((____puzzleStatus.girlStatusRight.girlDefinition.id - 1) * 10) + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusRight.girlDefinition).currentOutfitIndex);
-            }
-        }
+        ///// <summary>
+        ///// after the puzzle game is done check to see if outfit locations are done
+        ///// duplicated just in case the other isnt triggered
+        ///// </summary>
+        //[HarmonyPatch(typeof(CutsceneStepSpecialRoundClear), "Start")]
+        //[HarmonyPostfix]
+        //public static void test2(ref PuzzleStatus ____puzzleStatus)
+        //{
+        //    //check to see if we have outfit locations in logic
+        //    if (Convert.ToBoolean(ArchipelagoClient.ServerData.slotData["outfit_date_complete"]))
+        //    {
+        //        ArchipelagoConsole.LogMessage("hello");
+        //        return;
+        //    }
+        //
+        //    //check left girls outfit to see if location is not already checked otherwise send location
+        //    if (Game.Persistence.playerFile.GetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString())) == -1)
+        //    {
+        //        //set flag
+        //        Game.Persistence.playerFile.SetFlagValue((____puzzleStatus.girlStatusLeft.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex.ToString()), 1);
+        //        //send location
+        //        ArchipelagoClient.sendloc(69420385 + ((____puzzleStatus.girlStatusLeft.girlDefinition.id - 1) * 10) + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusLeft.girlDefinition).currentOutfitIndex);
+        //    }
+        //
+        //    //check right girls outfit to see if location is not already checked otherwise send location
+        //    if (Game.Persistence.playerFile.GetFlagValue((____puzzleStatus.girlStatusRight.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusRight.girlDefinition).currentOutfitIndex.ToString())) == -1)
+        //    {
+        //        //set flag
+        //        Game.Persistence.playerFile.SetFlagValue((____puzzleStatus.girlStatusRight.playerFileGirl.girlDefinition.id.ToString() + ":" + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusRight.girlDefinition).currentOutfitIndex.ToString()), 1);
+        //        //send location
+        //        ArchipelagoClient.sendloc(69420385 + ((____puzzleStatus.girlStatusRight.girlDefinition.id - 1) * 10) + Game.Session.gameCanvas.GetDoll(____puzzleStatus.girlStatusRight.girlDefinition).currentOutfitIndex);
+        //    }
+        //}
     }
 }
