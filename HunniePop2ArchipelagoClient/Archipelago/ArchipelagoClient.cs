@@ -111,8 +111,8 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 }
 
                 buildshoplocations(Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_shop_items"]));
-                totalitem = Convert.ToInt32(ServerData.slotData["total_slots"]);
-                totalloc = Convert.ToInt32(ServerData.slotData["total_slots"]);
+                totalitem = Convert.ToInt32(ServerData.slotData["total_items"]);
+                totalloc = Convert.ToInt32(ServerData.slotData["total_locations"]);
 
                 slotstate = session.DataStorage[Scope.Slot, "slotsetup"];
 
