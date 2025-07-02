@@ -1,6 +1,7 @@
 using HarmonyLib;
 using HunniePop2ArchipelagoClient.Archipelago;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
@@ -98,6 +99,94 @@ namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
             }
         }
 
+        /// <summary>
+        /// set the amount of puzzle moves to one we want
+        /// </summary>
+        [HarmonyPatch(typeof(PuzzleStatus), "Reset", [typeof(List<GirlDefinition>), typeof(bool)])]
+        [HarmonyPrefix]
+        public static void bosspairs(PuzzleStatus __instance, ref List<GirlDefinition> girlList)
+        {
+            if (girlList != null && girlList.Count == 10)
+            {
+                //ArchipelagoConsole.LogMessage($"PUZZLE RESET GIRL LIST COUNT:{girlList.Count}");
+                foreach (GirlDefinition girl in girlList)
+                {
+                    //ArchipelagoConsole.LogMessage($"{girl.name}");
+                }
+                List<GirlDefinition> allBySpecial = Game.Data.Girls.GetAllBySpecial(false);
+
+                if (ArchipelagoClient.ServerData.slotData["lola"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(1));
+                }
+                if (ArchipelagoClient.ServerData.slotData["jessie"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(2));
+                }
+                if (ArchipelagoClient.ServerData.slotData["lillian"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(3));
+                }
+                if (ArchipelagoClient.ServerData.slotData["zoey"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(4));
+                }
+                if (ArchipelagoClient.ServerData.slotData["sarah"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(5));
+                }
+                if (ArchipelagoClient.ServerData.slotData["lailani"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(6));
+                }
+                if (ArchipelagoClient.ServerData.slotData["candace"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(7));
+                }
+                if (ArchipelagoClient.ServerData.slotData["nora"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(8));
+                }
+                if (ArchipelagoClient.ServerData.slotData["brooke"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(9));
+                }
+                if (ArchipelagoClient.ServerData.slotData["ashley"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(10));
+                }
+                if (ArchipelagoClient.ServerData.slotData["abia"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(11));
+                }
+                if (ArchipelagoClient.ServerData.slotData["polly"].ToString() == 1.ToString())
+                {
+                    allBySpecial.Remove(Game.Data.Girls.Get(12));
+                }
+
+                if (allBySpecial.Count < 8)
+                {
+                    while (allBySpecial.Count < 8)
+                    {
+                        ListUtils.ShuffleList<GirlDefinition>(allBySpecial);
+                        allBySpecial.Add(allBySpecial[0]);
+                    }
+                }
+                ListUtils.ShuffleList<GirlDefinition>(allBySpecial);
+                while (allBySpecial.Count > 8)
+                {
+                    allBySpecial.RemoveAt(allBySpecial.Count - 1);
+                }
+                allBySpecial.Add(Game.Data.Girls.Get(14));
+                allBySpecial.Add(Game.Data.Girls.Get(15));
+                girlList = allBySpecial;
+                //ArchipelagoConsole.LogMessage($"--------------------");
+                //foreach (GirlDefinition girl in girlList)
+                //{
+                //    ArchipelagoConsole.LogMessage($"{girl.name}");
+                //}
+            }
+        }
 
         ///// <summary>
         ///// after the puzzle game is done check to see if outfit locations are done

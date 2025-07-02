@@ -56,8 +56,4 @@
 		</Reference>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="HuniePop2\Girls\" />
-	</ItemGroup>
-
 </Project>

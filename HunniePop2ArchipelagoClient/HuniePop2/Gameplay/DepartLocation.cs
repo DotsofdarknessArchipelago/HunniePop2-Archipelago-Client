@@ -1,10 +1,9 @@
+using Archipelago.MultiClient.Net.Enums;
 using HarmonyLib;
 using HunniePop2ArchipelagoClient.Archipelago;
 using HunniePop2ArchipelagoClient.HuniePop2.Girls;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
 
 namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
 {
@@ -84,11 +83,8 @@ namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
             }
 
             //save current archipelago data to file
-            using (StreamWriter archfile = File.CreateText(Application.persistentDataPath + "/archdata"))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(archfile, ArchipelagoClient.alist);
-            }
+            ArchipelagoClient.session.DataStorage[Scope.Slot, "savefile"] = JsonConvert.SerializeObject(Game.Persistence.playerData.files[4].WriteData());
+            ArchipelagoClient.session.DataStorage[Scope.Slot, "archdata"] = JsonConvert.SerializeObject(ArchipelagoClient.alist);
 
             //generate new finder and overwrite the finder slots with it since normal finder logic isnt that great when playing this
             //TODO overwite the finder UI so dont hae to do this?

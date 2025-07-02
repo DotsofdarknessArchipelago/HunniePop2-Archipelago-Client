@@ -5,28 +5,30 @@ using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace HunniePop2ArchipelagoClient.Archipelago
 {
     public class ArchipelagoClient
     {
         public const string APVersion = "0.5.0";
-        private const string Game = "Hunie Pop 2";
+        private const string game = "Hunie Pop 2";
 
         public static bool Authenticated;
         private bool attemptingConnection;
 
         public static ArchipelagoData ServerData = new();
-        private static ArchipelagoSession session;
+        public static ArchipelagoSession session;
 
         public static Dictionary<long, ScoutedItemInfo> shopdict = null;
         public static ArchipelageItemList alist = new ArchipelageItemList();
+        public static int totalloc = 0;
+        public static int totalitem = 0;
+        public bool slotstate = false;
 
         /// <summary>
         /// call to connect to an Archipelago session. Connection info should already be set up on ServerData
@@ -71,7 +73,7 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 ThreadPool.QueueUserWorkItem(
                     _ => HandleConnectResult(
                         session.TryConnectAndLogin(
-                            Game,
+                            game,
                             ServerData.SlotName,
                             ItemsHandlingFlags.AllItems, // TODO make sure to change this line
                             new Version(APVersion),
@@ -109,38 +111,57 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 }
 
                 buildshoplocations(Convert.ToInt32(ArchipelagoClient.ServerData.slotData["number_shop_items"]));
+                totalitem = Convert.ToInt32(ServerData.slotData["total_slots"]);
+                totalloc = Convert.ToInt32(ServerData.slotData["total_slots"]);
+
+                slotstate = session.DataStorage[Scope.Slot, "slotsetup"];
 
                 outText = $"Successfully connected to {ServerData.Uri} as {ServerData.SlotName}!";
-                alist.seed = session.RoomState.Seed;
 
-                if (File.Exists(Application.persistentDataPath + "/archdata"))
+                string alists = session.DataStorage[Scope.Slot, "archdata"];
+                ArchipelageItemList alist2 = JsonConvert.DeserializeObject<ArchipelageItemList>(alists);
+                Plugin.BepinLogger.LogMessage("SERVER ARCHDATA:");
+                Plugin.BepinLogger.LogMessage(alists);
+                if (alist2.seed != "")
                 {
-                    using (StreamReader file = File.OpenText(Application.persistentDataPath + "/archdata"))
-                    {
-                        JsonSerializer serializer = new JsonSerializer();
-                        ArchipelageItemList savedlist = (ArchipelageItemList)serializer.Deserialize(file, typeof(ArchipelageItemList));
-                        if (alist.seed == savedlist.seed)
-                        {
-                            ArchipelagoConsole.LogMessage("archdata file found restoring session");
-                            if (alist.merge(savedlist.list))
-                            {
-                                ArchipelagoConsole.LogMessage("ERROR LOADING SAVED ITEM LIST RESETING ITEM LIST");
-                                resetlist();
-                            }
-                        }
-                        else
-                        {
-                            ArchipelagoConsole.LogMessage("archdata file found but dosent match server seed creating new session");
-                            ArchipelagoConsole.LogMessage(session.RoomState.Seed + ": does not equal :" + savedlist.seed);
-                        }
-                    }
+                    //ArchipelagoConsole.LogMessage("ARCHDATA FOUND ON SERVER");
+                    alist = alist2;
                 }
                 else
                 {
-                    ArchipelagoConsole.LogMessage("archdata file not found creating new session");
+                    alist.seed = session.RoomState.Seed;
+                    //ArchipelagoConsole.LogMessage("ARCHDATA NOT FOUND CREATING NEW");
                 }
 
-                ArchipelagoConsole.LogMessage(outText);
+
+                //if (File.Exists(Application.persistentDataPath + "/archdata"))
+                //{
+                //    using (StreamReader file = File.OpenText(Application.persistentDataPath + "/archdata"))
+                //    {
+                //        JsonSerializer serializer = new JsonSerializer();
+                //        ArchipelageItemList savedlist = (ArchipelageItemList)serializer.Deserialize(file, typeof(ArchipelageItemList));
+                //        if (alist.seed == savedlist.seed)
+                //        {
+                //            ArchipelagoConsole.LogMessage("archdata file found restoring session");
+                //            if (alist.merge(savedlist.list))
+                //            {
+                //                ArchipelagoConsole.LogMessage("ERROR LOADING SAVED ITEM LIST RESETING ITEM LIST");
+                //                resetlist();
+                //            }
+                //        }
+                //        else
+                //        {
+                //            ArchipelagoConsole.LogMessage("archdata file found but dosent match server seed creating new session");
+                //            ArchipelagoConsole.LogMessage(session.RoomState.Seed + ": does not equal :" + savedlist.seed);
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    ArchipelagoConsole.LogMessage("archdata file not found creating new session");
+                //}
+
+                //ArchipelagoConsole.LogMessage(outText);
             }
             else
             {
@@ -171,6 +192,10 @@ namespace HunniePop2ArchipelagoClient.Archipelago
 
         public void SendMessage(string message)
         {
+            if ( message.StartsWith("$"))
+            {
+                
+            }
             session.Socket.SendPacketAsync(new SayPacket { Text = message });
         }
 
@@ -300,6 +325,77 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         {
             Plugin.BepinLogger.LogError($"Connection to Archipelago lost: {reason}");
             Disconnect();
+        }
+
+        public static void processcode(string code)
+        {
+            switch (code)
+            {
+                case "$resetitems":
+                    ArchipelagoConsole.LogMessage("RESETING SENT ITEM LIST ALL ITEMS WILL BE REPROCESSED");
+                    session.DataStorage[Scope.Slot, "archdata"] = "";
+                    break;
+                case "$voidfiller":
+                    ArchipelagoConsole.LogMessage("REMOVING UNPORCESS FILLER ITEMS FROM BEING PROCESSED");
+                    foreach (ArchipelagoItem i in alist.list)
+                    {
+                        if (i.Id > 69420344 && i.Id < 69420422)
+                        {
+                            i.processed = true;
+                        }
+                    }
+                    ArchipelagoClient.session.DataStorage[Scope.Slot, "archdata"] = JsonConvert.SerializeObject(ArchipelagoClient.alist);
+                    break;
+                case "$debugsave":
+                    string playerfile = ArchipelagoClient.session.DataStorage[Scope.Slot, $"savefile"];
+
+                    ArchipelagoConsole.LogMessage($"------------PLAYER FILE START -----------");
+                    ArchipelagoConsole.LogMessage($"{playerfile}");
+                    ArchipelagoConsole.LogMessage($"------------PLAYER FILE END -----------");
+                    break;
+                case "$debugarchdata":
+                    string adata = ArchipelagoClient.session.DataStorage[Scope.Slot, $"archdata"];
+
+                    ArchipelagoConsole.LogMessage($"------------ARCHDATA START -----------");
+                    ArchipelagoConsole.LogMessage($"{adata}");
+                    ArchipelagoConsole.LogMessage($"------------ARCHDATA END -----------");
+                    break;
+                case "$verifygame":
+                    PlayerFile playerFilea = Game.Persistence.playerData.files[4];
+
+                    ArchipelagoConsole.LogMessage("RESENDING PLAYER LOCATIONS");
+                    foreach (PlayerFileGirl girl in playerFilea.girls)
+                    {
+                        ArchipelagoConsole.LogMessage($"RESENDING {girl.girlDefinition.name} LOCATIONS");
+                        foreach (int q in girl.learnedFavs)
+                        {
+                            sendloc(69420144 + (girl.girlDefinition.id - 1) * 20 + q);
+                        }
+                        foreach (int s in girl.receivedShoes)
+                        {
+                            sendloc(IDs.idtoflag(girl.girlDefinition.shoesItemDefs[s].id) - 44);
+                        }
+                        foreach (int u in girl.receivedUniques)
+                        {
+                            sendloc(IDs.idtoflag(girl.girlDefinition.uniqueItemDefs[u].id) - 44);
+                        }
+                    }
+                    foreach (PlayerFileGirlPair pair in playerFilea.girlPairs)
+                    {
+                        ArchipelagoConsole.LogMessage($"RESENDING {pair.girlPairDefinition.name} LOCATIONS");
+                        if (pair.relationshipType == GirlPairRelationshipType.ATTRACTED)
+                        {
+                            sendloc(69420000 + pair.girlPairDefinition.id);
+                        }
+                        if (pair.relationshipType == GirlPairRelationshipType.LOVERS)
+                        {
+                            sendloc(69420024 + pair.girlPairDefinition.id);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

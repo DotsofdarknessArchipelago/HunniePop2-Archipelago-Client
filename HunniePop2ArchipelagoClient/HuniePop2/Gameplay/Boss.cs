@@ -1,6 +1,9 @@
 using HarmonyLib;
 using HunniePop2ArchipelagoClient.Archipelago;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using System;
+using System.Reflection;
 
 namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
 {
@@ -18,25 +21,73 @@ namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
             //make sure we are in the wing check convisation
             if (__instance.hubStepType == HubStepType.WINGS)
             {
-                // if we have equal to or more than 24 wings or the boss_wing_requirement add all girl pairs to completed pairs list to allow access to boss fight
-                if (Game.Persistence.playerFile.completedGirlPairs.Count >= 24) { return; }
-                if (Game.Persistence.playerFile.completedGirlPairs.Count >= Convert.ToInt32(ArchipelagoClient.ServerData.slotData["boss_wing_requirement"]))
+                PlayerFile file = Game.Persistence.playerFile;
+                if (ArchipelagoClient.ServerData.slotData["lovers_instead_wings"].ToString() == 1.ToString())
                 {
-                    ArchipelagoConsole.LogMessage("WING THRESHOLD REACHED GIVING REST OF WINGS TO ACCESS BOSS FIGHT");
-                    for (int j = 1; j < 25; j++)
+                    //the goal is lovers
+                    bool goal = true;
+                    int r = 0;
+                    int o = 0;
+                    foreach (GirlPairDefinition pair in Game.Data.GirlPairs.GetAll())
                     {
-                        if (!Game.Persistence.playerFile.completedGirlPairs.Contains(Game.Data.GirlPairs.Get(j)))
+                        if (pair.specialPair) { continue; }
+                        if (ArchipelagoClient.ServerData.slotData[pair.girlDefinitionOne.name.ToLower()].ToString() == 0.ToString() && ArchipelagoClient.ServerData.slotData[pair.girlDefinitionTwo.name.ToLower()].ToString() == 0.ToString())
                         {
-                            Game.Persistence.playerFile.completedGirlPairs.Add(Game.Data.GirlPairs.Get(j));
-                            Game.Persistence.SaveGame();
+                            goal = goal && file.GetPlayerFileGirlPair(pair).relationshipType == GirlPairRelationshipType.LOVERS;
+                            if (file.GetPlayerFileGirlPair(pair).relationshipType == GirlPairRelationshipType.LOVERS) { o++; }
+                            r++;
                         }
                     }
+                    if (goal)
+                    {
+                        ArchipelagoConsole.LogMessage("LOVER THRESHOLD REACHED GIVING PLAYER ALL WINGS TO ACCESS BOSS FIGHT");
+                        for (int j = 1; j < 26; j++)
+                        {
+                            if (!Game.Persistence.playerFile.completedGirlPairs.Contains(Game.Data.GirlPairs.Get(j)))
+                            {
+                                Game.Persistence.playerFile.completedGirlPairs.Add(Game.Data.GirlPairs.Get(j));
+                                Game.Persistence.SaveGame();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ArchipelagoConsole.LogMessage($"{o} OUT OF {r} REQUIRED PAIRS ARE LOVERS");
+                    }
+
                 }
-                //otherwise output the wings required to access the boss fight
                 else
                 {
-                    ArchipelagoConsole.LogMessage("WING THRESHOLD OF " + Convert.ToInt32(ArchipelagoClient.ServerData.slotData["boss_wing_requirement"]) + " NOT REACHED YET");
+                    //the goal is wings
+                    if (Game.Persistence.playerFile.completedGirlPairs.Count >= Convert.ToInt32(ArchipelagoClient.ServerData.slotData["boss_wing_requirement"]))
+                    {
+                        ArchipelagoConsole.LogMessage("WING THRESHOLD REACHED GIVING REST OF WINGS TO ACCESS BOSS FIGHT");
+                        for (int j = 1; j < 26; j++)
+                        {
+                            if (!Game.Persistence.playerFile.completedGirlPairs.Contains(Game.Data.GirlPairs.Get(j)))
+                            {
+                                Game.Persistence.playerFile.completedGirlPairs.Add(Game.Data.GirlPairs.Get(j));
+                                Game.Persistence.SaveGame();
+                            }
+                        }
+                    }
+                    //otherwise output the wings required to access the boss fight
+                    else
+                    {
+                        ArchipelagoConsole.LogMessage("WING THRESHOLD OF " + Convert.ToInt32(ArchipelagoClient.ServerData.slotData["boss_wing_requirement"]) + " NOT REACHED YET");
+                    }
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(HubManager), "HubStep")]
+        [HarmonyILManipulator]
+        public static void wing25(ILContext ctx, MethodBase orig)
+        {
+            sbyte n = 25;
+            for (int i = 10; i < ctx.Instrs.Count; i++)
+            {
+                if (ctx.Instrs[i].OpCode == OpCodes.Ldc_I4_S && ctx.Instrs[i].Operand.ToString() == "24" && ctx.Instrs[i-1].OpCode == OpCodes.Callvirt) { ctx.Instrs[i].Operand = n; }
             }
         }
     }
