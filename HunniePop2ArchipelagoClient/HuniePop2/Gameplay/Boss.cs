@@ -31,7 +31,7 @@ namespace HunniePop2ArchipelagoClient.HuniePop2.Gameplay
                     foreach (GirlPairDefinition pair in Game.Data.GirlPairs.GetAll())
                     {
                         if (pair.specialPair) { continue; }
-                        if (ArchipelagoClient.ServerData.slotData[pair.girlDefinitionOne.name.ToLower()].ToString() == 0.ToString() && ArchipelagoClient.ServerData.slotData[pair.girlDefinitionTwo.name.ToLower()].ToString() == 0.ToString())
+                        if (ArchipelagoClient.ServerData.slotData[pair.girlDefinitionOne.girlName.ToLower()].ToString() == 0.ToString() && ArchipelagoClient.ServerData.slotData[pair.girlDefinitionTwo.girlName.ToLower()].ToString() == 0.ToString())
                         {
                             goal = goal && file.GetPlayerFileGirlPair(pair).relationshipType == GirlPairRelationshipType.LOVERS;
                             if (file.GetPlayerFileGirlPair(pair).relationshipType == GirlPairRelationshipType.LOVERS) { o++; }
