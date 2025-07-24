@@ -1,5 +1,6 @@
 ﻿using Archipelago.MultiClient.Net.Models;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace HunniePop2ArchipelagoClient.Archipelago
 {
@@ -28,6 +29,10 @@ namespace HunniePop2ArchipelagoClient.Archipelago
             this.LocationId = -1;
         }
 
+        public override string ToString()
+        {
+            return $"{{ItemName:{ItemName},Id:{Id},PlayerName:{PlayerName},LocationId:{LocationId},processed:{processed},putinshop:{putinshop}}}";
+        }
     }
 
     public class ArchipelageItemList
@@ -38,42 +43,43 @@ namespace HunniePop2ArchipelagoClient.Archipelago
 
         public void add(ItemInfo netitem)
         {
+            Plugin.BepinLogger.LogMessage($"trying to add new netitem{{{netitem.ItemName} from {netitem.Player.Slot}:{netitem.Player.Name} AT {netitem.LocationId}:{netitem.LocationName}}}");
             for (int i = 0; i < list.Count; i++)
             {
                 if (list[i].Id == netitem.ItemId && list[i].PlayerName == netitem.Player.Name && list[i].LocationId == netitem.LocationId)
                 {
+                    Plugin.BepinLogger.LogMessage($"item skipped already in list");
                     return;
                 }
             }
+            Plugin.BepinLogger.LogMessage($"item not in list adding");
             ArchipelagoItem item = new ArchipelagoItem(netitem);
             list.Add(item);
         }
 
+        public void add(ArchipelagoItem ai)
+        {
+            Plugin.BepinLogger.LogMessage($"trying to add new architem {ai.ToString()}");
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].Id == ai.Id && list[i].PlayerName == ai.PlayerName && list[i].LocationId == ai.LocationId)
+                {
+                    Plugin.BepinLogger.LogMessage($"item already in list setting processed to {ai.processed} and putinshop to {ai.putinshop}");
+                    list[i].processed = ai.processed;
+                    list[i].putinshop = ai.putinshop;
+                    return;
+                }
+            }
+            Plugin.BepinLogger.LogMessage($"item not in list adding");
+            list.Add(ai);
+        }
+
         public bool merge(List<ArchipelagoItem> oldlist)
         {
+            if (oldlist == null || oldlist.Count == 0) return false;
             for (int i = 0; i < oldlist.Count; i++)
             {
-                if (list[i].Id != oldlist[i].Id && list[i].PlayerName != oldlist[i].PlayerName && list[i].LocationId != oldlist[i].LocationId)
-                {
-                    return true;
-                }
-                if (i>= list.Count) 
-                { 
-                    ArchipelagoItem tmp = new ArchipelagoItem();
-                    tmp.Id = oldlist[i].Id;
-                    tmp.ItemName = oldlist[i].ItemName;
-                    tmp.PlayerName = oldlist[i].PlayerName;
-                    tmp.LocationId = oldlist[i].LocationId;
-                    tmp.processed = oldlist[i].processed;
-                    tmp.putinshop = oldlist[i].putinshop;
-                    list.Add(tmp);
-                }
-                list[i].Id = oldlist[i].Id;
-                list[i].ItemName = oldlist[i].ItemName;
-                list[i].PlayerName = oldlist[i].PlayerName;
-                list[i].LocationId = oldlist[i].LocationId;
-                list[i].processed = oldlist[i].processed;
-                list[i].putinshop = oldlist[i].putinshop;
+                add(oldlist[i]);
             }
             return false;
         }
@@ -90,19 +96,6 @@ namespace HunniePop2ArchipelagoClient.Archipelago
             return false;
         }
 
-        public string listprint()
-        {
-            string output = "";
-            output += "-------------\n";
-            for (int i = 0; i < list.Count; i++)
-            {
-                output += $"I:{i}";
-                output += $"ID:{list[i].Id} PLAYER:{list[i].PlayerName} LOC:{list[i].LocationId}\n";
-                output += $"PROCESSED:{list[i].processed} PUTINSHOP:{list[i].putinshop}\n";
-            }
-            return output;
-        }
-
         public bool needprocessing()
         {
             for (int i = 0; i < list.Count; i++)
@@ -110,6 +103,16 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 if (!list[i].processed) { return true; }
             }
             return false;
+        }
+
+        public override string ToString()
+        {
+            string o = $"{{seed:{seed},listversion:{listversion},items:{{";
+            for (int i = 0;i < list.Count;i++)
+            {
+                o += $"{i}:{list[i].ToString()},";
+            }
+            return $"{o}}}}}";
         }
     }
 }

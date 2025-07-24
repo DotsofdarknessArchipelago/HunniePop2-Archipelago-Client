@@ -3,6 +3,7 @@ using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
+using BepInEx;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -103,6 +104,8 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 ServerData.SetupSession(success.SlotData, session.RoomState.Seed);
                 Authenticated = true;
 
+                Plugin.BepinLogger.LogMessage($"CONNECTED TO SERVER | CLIENT V{Plugin.PluginVersion}, SERVER V{ServerData.slotData["world_version"]}");
+
                 alist = new ArchipelageItemList();
 
                 foreach (ItemInfo item in session.Items.AllItemsReceived)
@@ -119,49 +122,25 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                 outText = $"Successfully connected to {ServerData.Uri} as {ServerData.SlotName}!";
 
                 string alists = session.DataStorage[Scope.Slot, "archdata"];
-                ArchipelageItemList alist2 = JsonConvert.DeserializeObject<ArchipelageItemList>(alists);
-                Plugin.BepinLogger.LogMessage("SERVER ARCHDATA:");
-                Plugin.BepinLogger.LogMessage(alists);
-                if (alist2.seed != "")
+                if (alists.IsNullOrWhiteSpace())
                 {
-                    //ArchipelagoConsole.LogMessage("ARCHDATA FOUND ON SERVER");
-                    alist = alist2;
+                    Plugin.BepinLogger.LogMessage("SERVER ARCHDATA = NULL");
+                    alist.seed = session.RoomState.Seed;
                 }
                 else
                 {
-                    alist.seed = session.RoomState.Seed;
-                    //ArchipelagoConsole.LogMessage("ARCHDATA NOT FOUND CREATING NEW");
+                    ArchipelageItemList alist2 = JsonConvert.DeserializeObject<ArchipelageItemList>(alists);
+                    Plugin.BepinLogger.LogMessage("SERVER ARCHDATA:");
+                    Plugin.BepinLogger.LogMessage(alists.ToString());
+                    if (alist2.seed != "")
+                    {
+                        alist.merge(alist2.list);
+                    }
+                    else
+                    {
+                        alist.seed = session.RoomState.Seed;
+                    }
                 }
-
-
-                //if (File.Exists(Application.persistentDataPath + "/archdata"))
-                //{
-                //    using (StreamReader file = File.OpenText(Application.persistentDataPath + "/archdata"))
-                //    {
-                //        JsonSerializer serializer = new JsonSerializer();
-                //        ArchipelageItemList savedlist = (ArchipelageItemList)serializer.Deserialize(file, typeof(ArchipelageItemList));
-                //        if (alist.seed == savedlist.seed)
-                //        {
-                //            ArchipelagoConsole.LogMessage("archdata file found restoring session");
-                //            if (alist.merge(savedlist.list))
-                //            {
-                //                ArchipelagoConsole.LogMessage("ERROR LOADING SAVED ITEM LIST RESETING ITEM LIST");
-                //                resetlist();
-                //            }
-                //        }
-                //        else
-                //        {
-                //            ArchipelagoConsole.LogMessage("archdata file found but dosent match server seed creating new session");
-                //            ArchipelagoConsole.LogMessage(session.RoomState.Seed + ": does not equal :" + savedlist.seed);
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    ArchipelagoConsole.LogMessage("archdata file not found creating new session");
-                //}
-
-                //ArchipelagoConsole.LogMessage(outText);
             }
             else
             {
@@ -194,7 +173,8 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         {
             if ( message.StartsWith("$"))
             {
-                
+                processcode(message);
+                return;
             }
             session.Socket.SendPacketAsync(new SayPacket { Text = message });
         }
@@ -206,29 +186,12 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         private void OnItemReceived(ReceivedItemsHelper helper)
         {
             var receivedItem = helper.DequeueItem();
-            //itemstoprocess.Enqueue(receivedItem.ItemId);
+
             alist.add(receivedItem);
-            /*
-            ArchipelagoConsole.LogMessage("------ITEM-RECEIVED--------");
-            ArchipelagoConsole.LogMessage("ItemID: " + receivedItem.ItemId.ToString());
-            ArchipelagoConsole.LogMessage("LocationID: " + receivedItem.LocationId.ToString());
-            ArchipelagoConsole.LogMessage("Player: " + receivedItem.Player.ToString());
-            ArchipelagoConsole.LogMessage("Flags: " + receivedItem.Flags.ToString());
-            ArchipelagoConsole.LogMessage("ItemName: " + receivedItem.ItemName);
-            ArchipelagoConsole.LogMessage("ItemDisplayName: " + receivedItem.ItemDisplayName);
-            ArchipelagoConsole.LogMessage("locationName: " + receivedItem.LocationName);
-            ArchipelagoConsole.LogMessage("LocationDisplayName: " + receivedItem.LocationDisplayName);
-            ArchipelagoConsole.LogMessage("ItemGame: " + receivedItem.ItemGame);
-            ArchipelagoConsole.LogMessage("LocationGame: " + receivedItem.LocationGame);
-            ArchipelagoConsole.LogMessage("-------------------");
-            */
+
             if (helper.Index < ServerData.Index) return;
 
             ServerData.Index++;
-
-            // TODO reward the item here
-            // if items can be received while in an invalid state for actually handling them, they can be placed in a local
-            // queue to be handled later
         }
 
         public static void sendloc(int loc)
@@ -331,16 +294,22 @@ namespace HunniePop2ArchipelagoClient.Archipelago
         {
             switch (code)
             {
+                case "$resync":
+                    ArchipelagoConsole.LogMessage("Resyncing Items");
+                    session.Socket.SendPacket(new SyncPacket());
+                    break;
                 case "$resetitems":
                     ArchipelagoConsole.LogMessage("RESETING SENT ITEM LIST ALL ITEMS WILL BE REPROCESSED");
                     session.DataStorage[Scope.Slot, "archdata"] = "";
+                    resetlist();
                     break;
                 case "$voidfiller":
-                    ArchipelagoConsole.LogMessage("REMOVING UNPORCESS FILLER ITEMS FROM BEING PROCESSED");
+                    ArchipelagoConsole.LogMessage("REMOVING UNPROCESSED FILLER ITEMS FROM BEING PROCESSED");
                     foreach (ArchipelagoItem i in alist.list)
                     {
                         if (i.Id > 69420344 && i.Id < 69420422)
                         {
+                            Plugin.BepinLogger.LogMessage($"setting item({i.ToString()}) to be processed");
                             i.processed = true;
                         }
                     }
@@ -353,11 +322,16 @@ namespace HunniePop2ArchipelagoClient.Archipelago
                     ArchipelagoConsole.LogMessage($"{playerfile}");
                     ArchipelagoConsole.LogMessage($"------------PLAYER FILE END -----------");
                     break;
-                case "$debugarchdata":
+                case "$debugserverarchdata":
                     string adata = ArchipelagoClient.session.DataStorage[Scope.Slot, $"archdata"];
 
-                    ArchipelagoConsole.LogMessage($"------------ARCHDATA START -----------");
+                    ArchipelagoConsole.LogMessage($"------------SERVER ARCHDATA START -----------");
                     ArchipelagoConsole.LogMessage($"{adata}");
+                    ArchipelagoConsole.LogMessage($"------------SERVER ARCHDATA END -----------");
+                    break;                
+                case "$debugarchdata":
+                    ArchipelagoConsole.LogMessage($"------------ARCHDATA START -----------");
+                    ArchipelagoConsole.LogMessage($"{alist.ToString()}");
                     ArchipelagoConsole.LogMessage($"------------ARCHDATA END -----------");
                     break;
                 case "$verifygame":
